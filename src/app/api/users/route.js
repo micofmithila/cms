@@ -31,7 +31,7 @@ export async function PUT(req) {
   }
 
   try {
-    const { name, email, phone, password } = await req.json();
+    const { name, email, phone, password, bio, position } = await req.json();
     const user = await User.findById(session.user.id);
 
     if (!user) {
@@ -42,6 +42,8 @@ export async function PUT(req) {
     if (email) user.email = email;
     if (phone) user.phone = phone;
     if (password) user.password = await bcrypt.hash(password, 10);
+    if (bio) user.bio = bio; // Assuming bio is sent in the request body
+    if (position) user.position = position; // Assuming position is sent in the request body
 
     await user.save();
     return Response.json({ message: 'Profile updated successfully' });
@@ -72,7 +74,7 @@ export async function POST(req) {
     const uploadImage = () =>
       new Promise((resolve, reject) => {
         const stream = cloudinary.uploader.upload_stream(
-          { folder: "grocerylist/avatars" },
+          { folder: "micofmithila/avatars" },
           async (error, result) => {
             if (error) reject(error);
             else resolve(result);

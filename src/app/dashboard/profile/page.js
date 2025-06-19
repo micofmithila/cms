@@ -4,13 +4,13 @@ import { useState, useEffect } from 'react';
 import AvatarUpload from '@/components/Profile/AvatarUpload';
 
 export default function ProfilePage() {
-  const [user, setUser] = useState({ name: '', email: '', phone: '', avatar: '' });
+  const [user, setUser] = useState({ name: '', email: '', role: '', position: '', phone: '', avatar: '', bio: '' });
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
 
   useEffect(() => {
-    fetch('/api/users')
+    const a = fetch('/api/users')
       .then((res) => res.json())
       .then((data) => setUser(data))
       .catch(() => alert('Failed to fetch user details'));
@@ -48,10 +48,11 @@ export default function ProfilePage() {
 
   return (
     <div className="max-w-lg mx-auto mt-6 p-6 bg-white shadow-md rounded-lg">
+    {console.log(user)}
       <h1 className="text-2xl font-bold mb-4">Profile</h1>
 
       <AvatarUpload 
-        currentAvatar={user.avatar} 
+        currentAvatar={user?.avatar} 
         onUpload={(url) => setUser((prev) => ({ ...prev, avatar: url }))} 
       />
 
@@ -63,7 +64,7 @@ export default function ProfilePage() {
           <input
             type="text"
             name="name"
-            value={user.name}
+            value={user?.name}
             onChange={handleChange}
             className="w-full p-2 border rounded-md"
           />
@@ -74,7 +75,7 @@ export default function ProfilePage() {
           <input
             type="email"
             name="email"
-            value={user.email}
+            value={user?.email}
             onChange={handleChange}
             className="w-full p-2 border rounded-md"
           />
@@ -85,9 +86,38 @@ export default function ProfilePage() {
           <input
             type="tel"
             name="phone"
-            value={user.phone}
+            value={user?.phone}
             onChange={handleChange}
             className="w-full p-2 border rounded-md"
+          />
+        </div>
+
+        <div>
+          <label className="block text-gray-700">Bio</label>
+          <input
+            type="text"
+            name="bio"
+            value={user?.bio}
+            onChange={handleChange}
+            className="w-full p-2 border rounded-md"
+          />
+        </div>
+        <div>
+          <label className="block text-gray-700">Role</label>
+          <input
+            type="text"
+            value={user?.role}
+            className="w-full p-2 border rounded-md"
+            disabled
+          />
+        </div>
+        <div>
+          <label className="block text-gray-700">Position</label>
+          <input
+            type="text"
+            value={user?.position}
+            className="w-full p-2 border rounded-md"
+            disabled
           />
         </div>
 

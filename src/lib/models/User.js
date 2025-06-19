@@ -5,8 +5,10 @@ const UserSchema = new mongoose.Schema({
   email: { type: String, unique: true, sparse: true },
   phone: { type: String, unique: true, sparse: true },
   password: { type: String, select: false },
+  bio: { type: String, default: '' },
+  position: { type: String, default: '' },
+  role: { type: String, enum: ['user', 'admin'], default: 'user' },
   avatar: String,
-  familyMembers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   createdAt: { type: Date, default: Date.now }
 });
 
