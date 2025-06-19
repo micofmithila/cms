@@ -52,21 +52,25 @@ export default function Navbar() {
         </button>
       </div>
 
-      {/* Mobile Menu */}
-      {menuOpen && (
-        <div className="md:hidden bg-gradient-to-b from-blue-700 to-purple-700 text-center py-4 px-4 space-y-4">
+      {/* Mobile Menu with Animation */}
+      <div
+        className={`md:hidden overflow-hidden transition-all duration-500 ease-in-out ${
+          menuOpen ? 'max-h-96 opacity-100 translate-y-0' : 'max-h-0 opacity-0 -translate-y-2'
+        } bg-gradient-to-b from-blue-700 to-purple-700 text-center px-4`}
+      >
+        <div className="py-4 space-y-4">
           {links.map(link => (
             <Link
               key={link.href}
               href={link.href}
               onClick={closeMenu}
-              className="block text-base font-medium hover:text-yellow-300 transition"
+              className="block text-base font-medium text-white hover:text-yellow-300 transition"
             >
               {link.label}
             </Link>
           ))}
         </div>
-      )}
+      </div>
     </header>
   );
 }

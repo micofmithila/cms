@@ -1,26 +1,25 @@
 import Link from "next/link";
 
-export default function HeroSection() {
+export default function HeroSection({bgImage}) {
     return (
-        <section className="relative w-full h-[70vh] overflow-hidden">
+        <section className="relative w-full h-screen overflow-hidden">
             {/* Background Image */}
             <div className="absolute inset-0 z-0">
                 <img
-                    src="https://res.cloudinary.com/shivanshucloud/image/upload/v1750271374/micofmithila/gallery/kcdk6izk5jdyyk2o9p3k.jpg"
+                    src={bgImage}
                     alt="Hero Background"
                     className="w-full h-full object-cover object-center"
                 />
-                {/* Overlay */}
                 <div className="absolute inset-0 bg-gradient-to-br from-blue-900/70 to-purple-800/80" />
             </div>
 
-            {/* Content (z-10 above image) */}
+            {/* Content */}
             <div className="relative z-10 flex items-center justify-center h-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="text-center text-white">
-                    <h1 className="text-3xl sm:text-5xl font-extrabold mb-4">
+                    <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold leading-tight mb-4">
                         Welcome to <span className="text-yellow-300">MIC of Mithila</span>
                     </h1>
-                    <p className="text-base sm:text-xl max-w-2xl mx-auto text-white/90 mb-6">
+                    <p className="text-base sm:text-lg lg:text-xl max-w-2xl mx-auto text-white/90 mb-6 px-2">
                         A vibrant stage for Mithila’s culture, talent, and expression. Join us to perform, connect, and celebrate!
                     </p>
                     <div className="flex flex-col sm:flex-row gap-4 justify-center">
