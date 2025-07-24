@@ -7,13 +7,12 @@ export default function AudienceReviews({reviews = []}) {
             {reviews.map((r, index) => (
               <div key={index} className="bg-white p-6 rounded-2xl shadow hover:shadow-lg transition">
                 <div className="flex items-center gap-4 mb-4">
-                  <img src={r.image} alt={r.name} className="w-14 h-14 rounded-full object-cover" />
                   <div>
                     <h4 className="text-lg font-semibold">{r.name}</h4>
                     <p className="text-sm text-gray-500">{r.role}</p>
                   </div>
                 </div>
-                <p className="text-gray-700 italic">“{r.review}”</p>
+                <p className="text-gray-700">“{r.review}”</p>
               </div>
             ))}
           </div>
