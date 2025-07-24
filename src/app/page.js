@@ -10,6 +10,7 @@ import Link from "next/link";
 export default function Home() {
 
   const heroSectionImage = "https://res.cloudinary.com/shivanshucloud/image/upload/v1750271374/micofmithila/gallery/kcdk6izk5jdyyk2o9p3k.jpg"
+  
   const featuredEvent = {
     _id: "event123",
     title: "Mic of Mithila Open Mic Season 3",
@@ -92,7 +93,8 @@ export default function Home() {
   return (
     <div>
       <HeroSection bgImage={heroSectionImage} />
-      <FeaturedEventSection event={featuredEvent} />
+      {/* <FeaturedEventSection event={featuredEvent} /> */}
+      <FeaturedEventSection />
       <FeaturedImagesSection images={featuredImages} />
       <TopPerformersSection performers={featuredPerformers} />
       <FeaturedVideo videoLink={featuredVideo} />
