@@ -87,7 +87,7 @@ export default function Footer() {
             {/* Footer Bottom */}
             <div className="mt-12 border-t border-gray-700 pt-6 text-center text-sm text-gray-400">
                 <p>© {new Date().getFullYear()} Mic Of Mithila. All rights reserved.</p>
-                <p>Made with ❤️ by Shivanshu Karn</p>
+                <p>Made with ❤️ by <a href="https://shivanshukarn.github.io/" target="_blank"><u>Shivanshu Karn</u></a></p>
             </div>
         </footer>
     );
