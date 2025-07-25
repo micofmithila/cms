@@ -18,6 +18,13 @@ const geistMono = Geist_Mono({
 export const metadata = {
   title: "Mic of Mithila - Open Mic Platform in Madhubani, Bihar",
   description: "MIC of Mithila is a platform based in Madhubani, Bihar, that provides an open mic stage for artists and talented individuals. It serves as a creative space for people to showcase their skills in poetry, storytelling, singing, stand-up comedy, and other performing arts.",
+  icons: {
+    icon: "/icon.png",             // Main icon (used by Android, browsers)
+    shortcut: "/favicon.ico",      // Legacy browsers
+    apple: "/apple-icon.png",      // Apple Touch devices
+  },
+  manifest: "/site.webmanifest",   // Optional, but recommended for Android
+  themeColor: "#ffffff",           // Android UI color
 };
 
 export default function RootLayout({ children }) {
