@@ -8,7 +8,7 @@ export const metadata = {
   description: 'Explore our past and upcoming events, showcasing talent from across Mithila.',
 };
 
-const Events = () => {
+const EventsClient = () => {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -38,4 +38,4 @@ const Events = () => {
   );
 };
 
-export default Events;
+export default EventsClient;
