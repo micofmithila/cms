@@ -65,9 +65,9 @@ export default function LoginPage() {
         >
           Sign In
         </button>
-        <div className='mt-2'>
+        {/* <div className='mt-2'>
           <Link href='/auth/register' className='text-blue-600 hover:underline'>New User? Register!</Link>
-        </div>
+        </div> */}
       </form>
     </div>
   );

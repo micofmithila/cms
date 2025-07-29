@@ -24,7 +24,6 @@ export const metadata = {
     apple: "/apple-icon.png",      // Apple Touch devices
   },
   manifest: "/site.webmanifest",   // Optional, but recommended for Android
-  themeColor: "#ffffff",           // Android UI color
 };
 
 export default function RootLayout({ children }) {
