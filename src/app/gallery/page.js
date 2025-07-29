@@ -3,6 +3,11 @@
 import { useState } from "react";
 import { FiDownload, FiLink } from "react-icons/fi";
 
+export const metadata = {
+  title: 'Gallery | MIC of Mithila',
+  description: 'Discover visual moments captured from our open mic events in Madhubani.',
+};
+
 const dummyGallery = [
   {
     "_id": "6853058e7e453191c7dcd8af",
