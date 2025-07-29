@@ -1,5 +1,4 @@
-import ContactUs from "./clientPage";
-
+import ContactClient from "./clientPage";
 
 export const metadata = {
   title: 'Contact Us | MIC of Mithila',
@@ -7,7 +6,7 @@ export const metadata = {
 };
 
 const ContactPage = () => {
-  return <ContactUs />;
+  return <ContactClient />;
 };
 
 export default ContactPage;

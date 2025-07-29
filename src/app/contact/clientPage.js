@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import toast from 'react-hot-toast';
 
-const ContactUs = () => {
+const ContactClient = () => {
   const [form, setForm] = useState({
     name: '',
     contact: '',
@@ -115,4 +115,4 @@ const ContactUs = () => {
   );
 };
 
-export default ContactUs;
+export default ContactClient;

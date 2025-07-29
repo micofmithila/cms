@@ -1,4 +1,4 @@
-import Events from "./clientPage";
+import EventsClient from "./clientPage";
 
 export const metadata = {
   title: 'Events | MIC of Mithila',
@@ -6,5 +6,5 @@ export const metadata = {
 };
 
 export default function EventsPage() {
-  return <Events />;
+  return <EventsClient />;
 }
