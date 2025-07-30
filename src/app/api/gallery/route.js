@@ -11,22 +11,15 @@ cloudinary.config({
     api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
-// title: { type: String, required: true },
-// description: { type: String, required: true },
-// tags: [{ type: String, required: true }],
-// relatedEvent: { type: String, required: true },
-// uploadedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-// category: { type: String, required: true },
-// featured: { type: Boolean, default: false },
-// imageUrls: [{ type: String, required: true }],
-
-export async function GET() {
+export async function GET(req) {
     await dbConnect();
+    const session = await getServerSession(authOptions);
     try {
-        const galleryItems = await Gallery.find().sort({ createdAt: -1 }); // Fetch all galleryItems sorted by latest
+        const query = session ? {} : { isPrivate: false };
+        const galleryItems = await Gallery.find(query).sort({ createdAt: -1 });
 
         if (!galleryItems.length) {
-            return NextResponse.json({ error: "No galleryItems found" }, { status: 404 });
+            return NextResponse.json({ error: "No gallery items found" }, { status: 404 });
         }
         return NextResponse.json(galleryItems, { status: 200 });
     } catch (error) {
@@ -45,15 +38,10 @@ export async function POST(req) {
     try {
         const form = await req.formData();
         const files = form.getAll('images');
-
-        const title = form.get('title');
-        const description = form.get('description');
         const tags = JSON.parse(form.get('tags'));
-        const relatedEvent = form.get('relatedEvent');
-        const category = form.get('category');
-        const featured = form.get('featured') === 'true';
+        const isPrivate = form.get('isPrivate') === 'true';
 
-        const uploadedUrls = [];
+        const uploadedItems = [];
 
         for (const file of files) {
             if (file && typeof file === 'object') {
@@ -72,24 +60,19 @@ export async function POST(req) {
                     stream.end(buffer);
                 });
 
-                uploadedUrls.push(url);
+                const newItem = new Gallery({
+                    imageUrl: url,
+                    tags,
+                    isPrivate,
+                    uploadedBy: session.user.id,
+                });
+
+                await newItem.save();
+                uploadedItems.push(newItem);
             }
         }
 
-        const newGalleryItem = new Gallery({
-            title,
-            description,
-            tags,
-            relatedEvent,
-            category,
-            featured,
-            imageUrls: uploadedUrls,
-            uploadedBy: session.user.id,
-        });
-
-        await newGalleryItem.save();
-
-        return NextResponse.json(newGalleryItem, { status: 201 });
+        return NextResponse.json(uploadedItems, { status: 201 });
     } catch (error) {
         return NextResponse.json({ error: error.message }, { status: 400 });
     }
@@ -104,17 +87,18 @@ export async function DELETE(req) {
 
     try {
         const { id } = await req.json();
-        const galleryItem = await Gallery.findByIdAndDelete(id);
+        const item = await Gallery.findByIdAndDelete(id);
 
-        if (!galleryItem) {
+        if (!item) {
             return NextResponse.json({ error: "Gallery item not found" }, { status: 404 });
         }
 
-        return NextResponse.json({ message: "Gallery item deleted successfully" }, { status: 200 });
+        return NextResponse.json({ message: "Deleted successfully" }, { status: 200 });
     } catch (error) {
         return NextResponse.json({ error: error.message }, { status: 400 });
     }
 }
+
 export async function PUT(req) {
     await dbConnect();
     const session = await getServerSession(authOptions);
@@ -123,22 +107,19 @@ export async function PUT(req) {
     }
 
     try {
-        const { id, title, description, imageUrls, tags, category, featured } = await req.json();
-        const galleryItem = await Gallery.findById(id);
+        const { id, imageUrl, tags, isPrivate } = await req.json();
+        const item = await Gallery.findById(id);
 
-        if (!galleryItem) {
+        if (!item) {
             return NextResponse.json({ error: "Gallery item not found" }, { status: 404 });
         }
 
-        if (title) galleryItem.title = title;
-        if (description) galleryItem.description = description;
-        if (imageUrls) galleryItem.imageUrls = imageUrls;
-        if (tags) galleryItem.tags = tags;
-        if (category) galleryItem.category = category;
-        if (featured !== undefined) galleryItem.featured = featured; // Check for undefined to allow false value
+        if (imageUrl) item.imageUrl = imageUrl;
+        if (tags) item.tags = tags;
+        if (typeof isPrivate === 'boolean') item.isPrivate = isPrivate;
 
-        await galleryItem.save();
-        return NextResponse.json(galleryItem, { status: 200 });
+        await item.save();
+        return NextResponse.json(item, { status: 200 });
     } catch (error) {
         return NextResponse.json({ error: error.message }, { status: 400 });
     }

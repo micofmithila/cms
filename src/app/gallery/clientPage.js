@@ -1,100 +1,76 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { FiDownload, FiLink } from "react-icons/fi";
-
-const dummyGallery = [
-  {
-    "_id": "6853058e7e453191c7dcd8af",
-    "title": "ep3",
-    "description": ".",
-    "tags": [],
-    "relatedEvents": [],
-    "uploadedBy": "68033c401f4d651a19d44f0f",
-    "category": ".",
-    "featured": false,
-    "imageUrls": [
-      "https://res.cloudinary.com/shivanshucloud/image/upload/v1750271374/micofmithila/gallery/kcdk6izk5jdyyk2o9p3k.jpg"
-    ],
-    "createdAt": "2025-06-18T18:29:34.940Z",
-    "__v": 0
-  },
-  {
-    "_id": "685305797e453191c7dcd8ad",
-    "title": "crew",
-    "description": ".",
-    "tags": [],
-    "relatedEvents": [],
-    "uploadedBy": "68033c401f4d651a19d44f0f",
-    "category": ".",
-    "featured": false,
-    "imageUrls": [
-      "https://res.cloudinary.com/shivanshucloud/image/upload/v1750271350/micofmithila/gallery/pf2glqwzgeuyqokyuyb5.jpg",
-      "https://res.cloudinary.com/shivanshucloud/image/upload/v1750271351/micofmithila/gallery/xjkxedb1uoagparkzfqc.jpg"
-    ],
-    "createdAt": "2025-06-18T18:29:13.021Z",
-    "__v": 0
-  },
-  {
-    "_id": "6852ff497e453191c7dcd899",
-    "title": "past events",
-    "description": ".",
-    "tags": [],
-    "relatedEvents": [],
-    "uploadedBy": "68033c401f4d651a19d44f0f",
-    "category": ".",
-    "featured": false,
-    "imageUrls": [
-      "https://res.cloudinary.com/shivanshucloud/image/upload/v1750269768/micofmithila/gallery/rr7vfui7l1zgmalksrdf.jpg"
-    ],
-    "createdAt": "2025-06-18T18:02:49.590Z",
-    "__v": 0
-  },
-  {
-    "_id": "6826f2181ed047b0222bf48c",
-    "title": "Episode 3 Poster",
-    "description": "Episode 3 Poster",
-    "tags": [
-      "episode3",
-      "mom",
-      "micofmithila",
-      "motherhood",
-      "mothersday",
-      "18may",
-      "poster"
-    ],
-    "relatedEvents": [],
-    "uploadedBy": "681b178c55f253c8989a0a47",
-    "category": "na",
-    "featured": false,
-    "imageUrls": [
-      "https://res.cloudinary.com/shivanshucloud/image/upload/v1747382806/micofmithila/gallery/egss5900jbk7aq6t7xbm.jpg"
-    ],
-    "createdAt": "2025-05-16T08:06:48.528Z",
-    "__v": 0
-  }
-];
+import LoadingSpinner from '@/components/Ui/LoadingSpinner';
+import { useEffect, useState } from 'react';
+import { FiDownload, FiLink } from 'react-icons/fi';
 
 export default function GalleryClient() {
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState('');
+  const [galleryItems, setGalleryItems] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const filteredImages = dummyGallery.filter(item => {
-    const text = `${item.title} ${item.category} ${item.tags.join(" ")}`.toLowerCase();
-    return text.includes(search.toLowerCase());
+  useEffect(() => {
+    const fetchGallery = async () => {
+      try {
+        const res = await fetch('/api/gallery');
+        if (!res.ok) throw new Error('Failed to fetch images');
+        const data = await res.json();
+        setGalleryItems(data);
+      } catch (err) {
+        console.error(err.message);
+        setGalleryItems([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchGallery();
+  }, []);
+
+  // Filter private images first
+  const publicImages = galleryItems.filter(item => item.isPrivate === false);
+
+  // Then apply search filtering
+  const filteredImages = publicImages.filter(item => {
+    const searchableText = `${item.tags.join(' ')}`.toLowerCase();
+    return searchableText.includes(search.toLowerCase());
   });
 
-  const handleDownload = (url) => {
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = "mic-of-mithila-image";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+  const handleDownload = async (url) => {
+    try {
+      const response = await fetch(url);
+      const blob = await response.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+
+      const now = new Date();
+      const pad = (num) => num.toString().padStart(2, '0');
+
+      const year = now.getFullYear();
+      const month = pad(now.getMonth() + 1);
+      const day = pad(now.getDate());
+      const hours = pad(now.getHours());
+      const minutes = pad(now.getMinutes());
+      const seconds = pad(now.getSeconds());
+
+      const formatted = `MOM_${year}${month}${day}_${hours}${minutes}${seconds}.jpg`;
+
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = formatted;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      window.URL.revokeObjectURL(blobUrl);
+    } catch (error) {
+      console.error('Download failed:', error);
+      alert('Download failed.');
+    }
   };
 
   const handleCopyLink = (url) => {
     navigator.clipboard.writeText(url);
-    alert("Image link copied to clipboard!");
+    alert('Image link copied to clipboard!');
   };
 
   return (
@@ -108,36 +84,39 @@ export default function GalleryClient() {
         <div className="mb-8 max-w-md mx-auto">
           <input
             type="text"
-            placeholder="Search by tag, title or category..."
+            placeholder="Search by name or tags..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full px-4 py-3 rounded-full border border-purple-300 shadow-sm focus:ring-purple-500 focus:border-purple-500"
           />
         </div>
 
+        {/* Loading */}
+        {loading && <LoadingSpinner />}
+
         {/* Image Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-          {filteredImages.flatMap((item) =>
-            item.imageUrls.map((url, idx) => (
+        {!loading && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+            {filteredImages.map((item) => (
               <div
-                key={`${item._id}-${idx}`}
+                key={item._id}
                 className="relative rounded-xl overflow-hidden group shadow-md"
               >
                 <img
-                  src={url}
+                  src={item.imageUrl}
                   alt="Gallery"
                   className="w-full h-64 object-cover transition duration-300 group-hover:brightness-90"
                 />
                 <div className="absolute bottom-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition">
                   <button
-                    onClick={() => handleDownload(url)}
+                    onClick={() => handleDownload(item.imageUrl)}
                     className="bg-white/80 backdrop-blur px-2 py-1 rounded-full text-purple-700 hover:bg-white shadow"
                     title="Download"
                   >
                     <FiDownload />
                   </button>
                   <button
-                    onClick={() => handleCopyLink(url)}
+                    onClick={() => handleCopyLink(item.imageUrl)}
                     className="bg-white/80 backdrop-blur px-2 py-1 rounded-full text-purple-700 hover:bg-white shadow"
                     title="Copy Link"
                   >
@@ -145,12 +124,12 @@ export default function GalleryClient() {
                   </button>
                 </div>
               </div>
-            ))
-          )}
-        </div>
+            ))}
+          </div>
+        )}
 
         {/* No Results */}
-        {filteredImages.length === 0 && (
+        {!loading && filteredImages.length === 0 && (
           <p className="text-center text-gray-500 mt-10">
             No images found for this search.
           </p>
