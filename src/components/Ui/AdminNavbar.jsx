@@ -2,10 +2,10 @@
 
 import Link from 'next/link';
 import { useSession, signOut } from 'next-auth/react';
-import toast from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
+import toast from 'react-hot-toast';
 
-export default function Navbar() {
+export default function AdminNavbar() {
   const { data: session } = useSession();
   const router = useRouter();
 
@@ -22,45 +22,26 @@ export default function Navbar() {
     router.push('/auth/login');
   };
 
+  if (!session) return null;
+
   return (
-    <nav className="bg-gradient-to-r from-blue-700 to-purple-700 text-white px-6 py-4 shadow-md sticky top-0 z-50">
+    <nav className="bg-gray-800 text-white px-6 py-4 shadow-lg sticky top-0 z-[60] border-b-4 border-purple-600">
       <div className="max-w-7xl mx-auto flex justify-between items-center">
-        {/* Title / Logo */}
-        <div className="text-2xl font-extrabold tracking-wide">
-          <Link href="/" className="hover:text-yellow-300 transition">
-            MIC of Mithila
-          </Link>
-        </div>
+        {/* Admin Title */}
+        <Link
+          href="/dashboard"
+          className="text-xl sm:text-2xl font-extrabold tracking-wider hover:text-purple-400 transition"
+        >
+          Admin Dashboard
+        </Link>
 
-        {/* Navigation Links (Desktop) */}
-        <div className="space-x-6 hidden md:flex text-lg font-medium">
-          {/* <Link href="/" className="hover:text-yellow-300 transition">Home</Link> */}
-          <Link href="/dashboard" className="hover:text-yellow-300 transition">Dashboard</Link>
-          <Link href="/dashboard/events" className="hover:text-yellow-300 transition">Events</Link>
-          <Link href="/dashboard/gallery" className="hover:text-yellow-300 transition">Gallery</Link>
-          <Link href="/dashboard/about" className="hover:text-yellow-300 transition">About Us</Link>
-          <Link href="/dashboard/contact" className="hover:text-yellow-300 transition">Contact</Link>
-          <Link href="/dashboard/profile" className="hover:text-yellow-300 transition">Profile</Link>
-        </div>
-
-        {/* Auth Button */}
-        <div>
-          {session ? (
-            <button
-              onClick={handleLogout}
-              className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg font-medium transition"
-            >
-              Logout
-            </button>
-          ) : (
-            <Link
-              href="/auth/login"
-              className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-medium transition"
-            >
-              Login
-            </Link>
-          )}
-        </div>
+        {/* Logout */}
+        <button
+          onClick={handleLogout}
+          className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md font-medium transition"
+        >
+          Logout
+        </button>
       </div>
     </nav>
   );

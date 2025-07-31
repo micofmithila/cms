@@ -10,7 +10,7 @@ export default function ProfilePage() {
   const [successMessage, setSuccessMessage] = useState('');
 
   useEffect(() => {
-    const a = fetch('/api/users')
+    const a = fetch('/api/user')
       .then((res) => res.json())
       .then((data) => setUser(data))
       .catch(() => alert('Failed to fetch user details'));
@@ -29,7 +29,7 @@ export default function ProfilePage() {
     if (password) updatedUser.password = password; // Add password only if user enters it
 
     try {
-      const response = await fetch('/api/users', {
+      const response = await fetch('/api/user', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updatedUser),
