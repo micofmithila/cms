@@ -4,6 +4,7 @@ import SessionProviderWrapper from '@/components/Shared/SessionProviderWrapper';
 import Navbar from "@/components/Ui/Navbar";
 import { Toaster } from "react-hot-toast";
 import Footer from "@/components/Ui/Footer";
+import { GoogleAnalytics } from '@next/third-parties/google'
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -39,6 +40,7 @@ export default function RootLayout({ children }) {
         </SessionProviderWrapper>
         <Toaster position="bottom-center" reverseOrder={true} />
       </body>
+      <GoogleAnalytics gaId="G-L9PE54Q9D9" />
     </html>
   );
 }
