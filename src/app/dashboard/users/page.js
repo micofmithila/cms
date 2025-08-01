@@ -1,162 +1,132 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
-import Image from 'next/image';
+import Link from 'next/link';
 
 export default function UserManagementPage() {
-  const { data: session, status } = useSession();
-  const router = useRouter();
   const [users, setUsers] = useState([]);
-  const [selectedUser, setSelectedUser] = useState(null);
-  const [dialogOpen, setDialogOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [editingUser, setEditingUser] = useState(null);
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    bio: '',
+    position: '',
+    role: '',
+    password: ''
+  });
 
   useEffect(() => {
-    if (status === 'loading') return;
-    if (!session || session.user.role !== 'admin') {
-      router.push('/dashboard');
-    } else {
-      fetchUsers();
-    }
-  }, [session, status]);
+    fetchUsers();
+  }, []);
 
   const fetchUsers = async () => {
+    setLoading(true);
     const res = await fetch('/api/users');
     const data = await res.json();
     setUsers(data);
+    setLoading(false);
   };
 
-  const handleDelete = async (id) => {
-    if (!confirm('Are you sure you want to delete this user?')) return;
-    await fetch(`/api/users/${id}`, { method: 'DELETE' });
-    fetchUsers();
+  const handleEditClick = (user) => {
+    setEditingUser(user._id);
+    setFormData({
+      name: user.name,
+      email: user.email,
+      phone: user.phone,
+      bio: user.bio,
+      position: user.position,
+      role: user.role,
+      password: ''
+    });
   };
 
   const handleUpdate = async () => {
-    await fetch(`/api/users/${selectedUser._id}`, {
+    const res = await fetch(`/api/users/${editingUser}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(selectedUser),
+      body: JSON.stringify(formData)
     });
-    setDialogOpen(false);
-    fetchUsers();
+    if (res.ok) {
+      setEditingUser(null);
+      fetchUsers();
+    }
   };
 
-  if (!session || session.user.role !== 'admin') return null;
+  const handleDelete = async (id) => {
+    if (confirm('Are you sure you want to delete this user?')) {
+      const res = await fetch(`/api/users/${id}`, { method: 'DELETE' });
+      if (res.ok) fetchUsers();
+    }
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
 
   return (
-    <div className="p-6 space-y-6">
-      <h1 className="text-3xl font-bold mb-6">User Management</h1>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {users.map((user) => (
-          <div key={user._id} className="rounded-2xl shadow bg-white p-4 space-y-4">
-            <div className="flex items-center gap-4">
-              <Image
-                src={user.avatar || '/avatar-placeholder.png'}
-                alt={user.name}
-                width={48}
-                height={48}
-                className="rounded-full object-cover"
-              />
-              <div>
-                <h2 className="font-semibold">{user.name}</h2>
-                <p className="text-sm text-gray-500">{user.email}</p>
-              </div>
-            </div>
-            <div className="text-sm text-gray-700">
-              <p><b>Phone:</b> {user.phone}</p>
-              <p><b>Role:</b> {user.role}</p>
-              <p><b>Position:</b> {user.position}</p>
-              <p><b>Bio:</b> {user.bio || '-'}</p>
-            </div>
-            <div className="flex gap-3 justify-end">
-              <button
-                onClick={() => {
-                  setSelectedUser(user);
-                  setDialogOpen(true);
-                }}
-                className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1.5 rounded-xl text-sm"
-              >
-                Edit
-              </button>
-              <button
-                onClick={() => handleDelete(user._id)}
-                className="bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded-xl text-sm"
-              >
-                Delete
-              </button>
-            </div>
-          </div>
-        ))}
+    <div className="p-6 max-w-7xl mx-auto">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold text-gray-800">User Management</h1>
+        <Link href="/dashboard/users/create" className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+          + Create New User
+        </Link>
       </div>
 
-      {/* Dialog */}
-      {dialogOpen && selectedUser && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-xl w-[90%] max-w-md space-y-4 relative">
-            <h2 className="text-xl font-bold">Edit User</h2>
+      {loading ? (
+        <p>Loading users...</p>
+      ) : (
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {users.map(user => (
+            <div key={user._id} className="border border-gray-200 rounded-lg p-4 shadow bg-white">
+              <div className="flex items-center gap-4">
+                <img src={user.avatar} alt={user.name} className="w-14 h-14 rounded-full object-cover" />
+                <div>
+                  <h2 className="font-semibold text-lg">{user.name}</h2>
+                  <p className="text-sm text-gray-500">{user.email}</p>
+                  <p className="text-sm text-gray-500">{user.phone}</p>
+                </div>
+              </div>
 
-            <div className="space-y-2">
-              <input
-                type="text"
-                value={selectedUser.name}
-                onChange={e => setSelectedUser({ ...selectedUser, name: e.target.value })}
-                className="w-full border rounded-lg px-3 py-2 text-sm"
-                placeholder="Name"
-              />
-              <input
-                type="email"
-                value={selectedUser.email}
-                onChange={e => setSelectedUser({ ...selectedUser, email: e.target.value })}
-                className="w-full border rounded-lg px-3 py-2 text-sm"
-                placeholder="Email"
-              />
-              <input
-                type="text"
-                value={selectedUser.phone}
-                onChange={e => setSelectedUser({ ...selectedUser, phone: e.target.value })}
-                className="w-full border rounded-lg px-3 py-2 text-sm"
-                placeholder="Phone"
-              />
-              <input
-                type="text"
-                value={selectedUser.position}
-                onChange={e => setSelectedUser({ ...selectedUser, position: e.target.value })}
-                className="w-full border rounded-lg px-3 py-2 text-sm"
-                placeholder="Position"
-              />
-              <textarea
-                value={selectedUser.bio}
-                onChange={e => setSelectedUser({ ...selectedUser, bio: e.target.value })}
-                className="w-full border rounded-lg px-3 py-2 text-sm"
-                placeholder="Bio"
-              />
+              <div className="mt-4 text-sm">
+                <p><strong>Role:</strong> {user.role}</p>
+                <p><strong>Position:</strong> {user.position}</p>
+                <p><strong>Bio:</strong> {user.bio}</p>
+              </div>
 
-              <select
-                value={selectedUser.role}
-                onChange={e => setSelectedUser({ ...selectedUser, role: e.target.value })}
-                className="w-full border rounded-lg px-3 py-2 text-sm"
-              >
+              <div className="flex justify-end gap-2 mt-4">
+                <button onClick={() => handleEditClick(user)} className="text-blue-600 hover:underline">Edit</button>
+                <button onClick={() => handleDelete(user._id)} className="text-red-600 hover:underline">Delete</button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Edit Modal */}
+      {editingUser && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center">
+          <div className="bg-white rounded-xl p-6 w-full max-w-lg shadow-lg">
+            <h2 className="text-xl font-bold mb-4">Edit User</h2>
+
+            <div className="space-y-3">
+              <input type="text" name="name" placeholder="Name" value={formData.name} onChange={handleChange} className="w-full border rounded p-2" />
+              <input type="email" name="email" placeholder="Email" value={formData.email} onChange={handleChange} className="w-full border rounded p-2" />
+              <input type="text" name="phone" placeholder="Phone" value={formData.phone} onChange={handleChange} className="w-full border rounded p-2" />
+              <input type="text" name="position" placeholder="Position" value={formData.position} onChange={handleChange} className="w-full border rounded p-2" />
+              <input type="text" name="bio" placeholder="Bio" value={formData.bio} onChange={handleChange} className="w-full border rounded p-2" />
+              <select name="role" value={formData.role} onChange={handleChange} className="w-full border rounded p-2">
                 <option value="user">User</option>
-                <option value="moderator">Moderator</option>
                 <option value="admin">Admin</option>
               </select>
+              <input type="password" name="password" placeholder="New Password (optional)" value={formData.password} onChange={handleChange} className="w-full border rounded p-2" />
             </div>
 
-            <div className="flex justify-end gap-3 pt-4">
-              <button
-                onClick={() => setDialogOpen(false)}
-                className="px-4 py-2 text-sm border rounded-lg"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleUpdate}
-                className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg"
-              >
-                Save
-              </button>
+            <div className="flex justify-end mt-4 gap-2">
+              <button onClick={() => setEditingUser(null)} className="px-4 py-2 rounded bg-gray-300 hover:bg-gray-400">Cancel</button>
+              <button onClick={handleUpdate} className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700">Update</button>
             </div>
           </div>
         </div>
