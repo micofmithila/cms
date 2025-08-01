@@ -22,8 +22,7 @@ export const metadata = {
     icon: "/icon.png",             // Main icon (used by Android, browsers)
     shortcut: "/favicon.ico",      // Legacy browsers
     apple: "/apple-icon.png",      // Apple Touch devices
-  },
-  manifest: "/site.webmanifest",   // Optional, but recommended for Android
+  }
 };
 
 export default function RootLayout({ children }) {
