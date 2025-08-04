@@ -1,177 +1,216 @@
-// app/events/[id]/page.js
-import React from "react";
+'use client';
 
+import { useEffect, useState } from 'react';
+import { useParams } from 'next/navigation';
+import DOMPurify from 'dompurify';
 
-async function getEventData(id) {
-    const baseUrl = process.env.BASE_URL || 'http://localhost:3000';  // Adjust for your environment
+const EventDetails = () => {
+  const { id } = useParams();
+  const [event, setEvent] = useState(null);
+  const [showForm, setShowForm] = useState(false);
 
-    const res = await fetch(`${baseUrl}/api/events?id=${id}`, {
-        cache: "no-store",
-    });
-
-    if (!res.ok) {
-        throw new Error("Failed to fetch event data");
-    }
-
-    return res.json();
-}
-
-export async function generateMetadata({ params }) {
-    const { id } = await params;
-    const event = await getEventData(id);
-    return {
-        title: `Events | ${event.title || "Untitled Event"}`,
-        openGraph: {
-            title: `Events | ${event.title || "Untitled Event"}`,
-            images: [
-                {
-                    url: event.posterUrl || `${process.env.BASE_URL}/default-image.jpg`, // Fallback image
-                    width: 800,
-                    height: 600,
-                },
-            ],
-        },
+  useEffect(() => {
+    const fetchEvent = async () => {
+      try {
+        const res = await fetch(`/api/events/${id}`);
+        const data = await res.json();
+        setEvent(data);
+      } catch (err) {
+        console.error('Failed to fetch event:', err);
+      }
     };
-}
 
+    fetchEvent();
+  }, [id]);
 
-export default async function EventDetailsPage({ params }) {
-    const { id } = await params;
-    const event = await getEventData(id);
+  if (!event) return <div className="p-6 text-center">Loading event...</div>;
 
-    return (
-        <div className="max-w-3xl mx-auto p-6">
-            <div className="p-4 bg-white rounded shadow-md space-y-3">
-                {/* Title */}
-                <h2 className="text-xl font-bold text-gray-900">{event.title || "Untitled Event"}</h2>
+  const {
+    title,
+    posterUrl,
+    eventDate,
+    eventTime,
+    eventVenueAddress,
+    registrationFee,
+    status,
+    isRegistrationOpen,
+    desc,
+  } = event;
 
-                {/* Poster Image */}
-                {event.posterUrl && (
-                    <div>
-                        <strong>Poster:</strong>
-                        <img src={event.posterUrl} alt="Event Poster" className="w-full max-w-md mt-2 rounded" />
-                    </div>
-                )}
+  const handleFormToggle = () => {
+    if (!isRegistrationOpen) {
+      alert('Registration is closed or not started.');
+      return;
+    }
+    setShowForm((prev) => !prev);
+  };
 
-                {/* Images Array */}
-                {event.imagesArray?.length > 0 && (
-                    <div>
-                        <strong>Images:</strong>
-                        <div className="flex gap-2 mt-2 overflow-x-auto">
-                            {event.imagesArray.map((img, index) => (
-                                <img
-                                    key={index}
-                                    src={img}
-                                    alt={`Image ${index + 1}`}
-                                    className="w-32 h-32 object-cover rounded"
-                                />
-                            ))}
-                        </div>
-                    </div>
-                )}
+  return (
+    <div className="max-w-5xl mx-auto px-4 py-8 space-y-6">
+      <h1 className="text-3xl font-bold text-center">{title}</h1>
 
-                {/* Theme */}
-                <p className="text-gray-700">
-                    <strong>Theme:</strong> {event.theme || "No theme specified"}
-                </p>
+      {posterUrl && (
+        <img
+          src={posterUrl}
+          alt={title}
+          className="max-w-full max-h-[600px] object-contain rounded-xl shadow-md mx-auto"
+        />
+      )}
 
-                {/* Chief Guests */}
-                {event.chiefGuests?.length > 0 && (
-                    <p className="text-gray-700">
-                        <strong>Chief Guests:</strong> {event.chiefGuests.join(", ")}
-                    </p>
-                )}
-
-                {/* Registration Limit */}
-                <p className="text-gray-700">
-                    <strong>Registration Limit:</strong> {event.registrationLimit || "No limit"}
-                </p>
-
-                {/* Registration Fee */}
-                <p className="text-gray-700">
-                    <strong>Registration Fee:</strong>{" "}
-                    {event.registrationFee === 0 ? "Free" : `₹${event.registrationFee}`}
-                </p>
-
-                {/* Registration Link */}
-                {event.registrationLink && (
-                    <p className="text-blue-600">
-                        <strong>Registration Link:</strong>{" "}
-                        <a
-                            href={event.registrationLink}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="underline"
-                        >
-                            {event.registrationLink}
-                        </a>
-                    </p>
-                )}
-
-                {/* Registration Opening Date */}
-                <p className="text-gray-700">
-                    <strong>Registration Opens:</strong>{" "}
-                    {event.registrationOpeningDate
-                        ? new Date(event.registrationOpeningDate).toLocaleDateString("en-US", {
-                            year: "numeric",
-                            month: "long",
-                            day: "numeric",
-                        })
-                        : "Not specified"}
-                </p>
-
-                {/* Registration Closing Date */}
-                <p className="text-gray-700">
-                    <strong>Registration Closes:</strong>{" "}
-                    {event.registrationClosingDate
-                        ? new Date(event.registrationClosingDate).toLocaleDateString("en-US", {
-                            year: "numeric",
-                            month: "long",
-                            day: "numeric",
-                        })
-                        : "Not specified"}
-                </p>
-
-                {/* Event Date */}
-                <p className="text-gray-700">
-                    <strong>Event Date:</strong>{" "}
-                    {event.eventDate
-                        ? new Date(event.eventDate).toLocaleDateString("en-US", {
-                            year: "numeric",
-                            month: "long",
-                            day: "numeric",
-                        })
-                        : "Date not available"}
-                </p>
-
-                {/* Event Time */}
-                <p className="text-gray-700">
-                    <strong>Event Time:</strong>{" "}
-                    {event.eventTime
-                        ? new Date(`1970-01-01T${event.eventTime}`).toLocaleTimeString("en-US", {
-                            hour: "numeric",
-                            minute: "2-digit",
-                            hour12: true,
-                        })
-                        : "Time not available"}
-                </p>
-
-                {/* Venue */}
-                <p className="text-gray-700">
-                    <strong>Venue:</strong> {event.eventVenueAddress || "Venue not specified"}
-                </p>
-
-                {/* Status */}
-                <p className="text-gray-700">
-                    <strong>Status:</strong>{" "}
-                    <span className="capitalize">{event.status || "draft"}</span>
-                </p>
-                {/* Description (HTML content) */}
-                <div
-                    className="prose"
-                    dangerouslySetInnerHTML={{ __html: event.desc }}
-                />
-            </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 bg-gray-50 p-6 rounded-xl shadow-sm text-sm">
+        <div><strong>Date:</strong> {new Date(eventDate).toLocaleDateString()}</div>
+        <div><strong>Time:</strong> {eventTime}</div>
+        <div><strong>Venue:</strong> {eventVenueAddress}</div>
+        <div><strong>Registration Fee:</strong> {registrationFee === 0 ? 'Free' : `₹${registrationFee}`}</div>
+        <div>
+          <strong>Status:</strong>{' '}
+          <span className={`font-semibold ${status === 'upcoming' ? 'text-green-600' : status === 'cancelled' ? 'text-red-600' : status === 'completed' ? 'text-gray-600' : 'text-yellow-500'}`}>
+            {status}
+          </span>
         </div>
-    );
-}
+        <div>
+          <strong>Registration:</strong>{' '}
+          {isRegistrationOpen ? (
+            <span className="text-green-600 font-semibold">Open</span>
+          ) : (
+            <span className="text-red-600 font-semibold">Closed</span>
+          )}
+        </div>
+      </div>
+
+      <div className="bg-white p-6 rounded-xl shadow-sm">
+        <h2 className="text-xl font-semibold mb-4">Description</h2>
+        <div
+          className="prose max-w-none prose-headings:scroll-mt-20 prose-h1:text-2xl prose-h2:text-xl prose-p:text-base"
+          dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(desc || '') }}
+        />
+      </div>
+
+      {/* Register Button */}
+      <div className="text-center">
+        <button
+          onClick={handleFormToggle}
+          className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition"
+        >
+          Registration Form
+        </button>
+      </div>
+
+      {isRegistrationOpen && showForm && (
+        <div className="bg-white p-6 mt-6 rounded-xl shadow-sm">
+          <h2 className="text-xl font-semibold mb-4">Register for this Event</h2>
+          <form
+            onSubmit={async (e) => {
+              e.preventDefault();
+              const formData = {
+                name: e.target.name.value.trim(),
+                email: e.target.email.value.trim(),
+                phone: e.target.phone.value.trim(),
+                category: e.target.category.value.trim(),
+                age: e.target.age.value.trim(),
+                address: e.target.address.value.trim(),
+                socialLink: e.target.socialLink.value.trim(),
+                howKnowAboutMic: e.target.howKnowAboutMic.value.trim(),
+                anyQues: e.target.anyQues.value.trim()
+              };
+
+              try {
+                const res = await fetch(`/api/events/${id}/register`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify(formData)
+                });
+
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || 'Registration failed');
+
+                alert('Successfully registered!');
+                setShowForm(false);
+              } catch (err) {
+                alert(err.message);
+              }
+            }}
+            className="space-y-4"
+          >
+            {[
+              { name: 'name', label: 'Full Name', type: 'text' },
+              { name: 'email', label: 'Email', type: 'email' },
+              { name: 'phone', label: 'Phone Number', type: 'tel' },
+              {
+                name: 'category',
+                label: 'Category',
+                type: 'select',
+                options: [
+                  'Poetry',
+                  'Storytelling',
+                  'Singing',
+                  'Rapsong',
+                  'Beatboxing',
+                  'Mimicry',
+                  'Stand-up Comedy',
+                  'Audience'
+                ]
+              },
+              { name: 'age', label: 'Age', type: 'number' },
+              { name: 'address', label: 'Address', type: 'text' },
+              { name: 'socialLink', label: 'Social Link (Instagram, YouTube)', type: 'url' },
+              { name: 'howKnowAboutMic', label: 'How did you hear about Mic of Mithila?', type: 'text' }
+            ].map((field) => (
+              <div key={field.name}>
+                <label htmlFor={field.name} className="block text-sm font-medium mb-1">
+                  {field.label} *
+                </label>
+                {field.type === 'select' ? (
+                  <select
+                    id={field.name}
+                    name={field.name}
+                    required
+                    className="w-full border border-gray-300 rounded px-3 py-2 bg-white"
+                  >
+                    <option value="">Select a category</option>
+                    {field.options.map((option) => (
+                      <option key={option} value={option}>
+                        {option}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <input
+                    type={field.type}
+                    id={field.name}
+                    name={field.name}
+                    required
+                    className="w-full border border-gray-300 rounded px-3 py-2"
+                  />
+                )}
+              </div>
+            ))}
+
+
+            {/* Optional Question */}
+            <div>
+              <label htmlFor="anyQues" className="block text-sm font-medium mb-1">
+                Any Question (optional)
+              </label>
+              <textarea
+                id="anyQues"
+                name="anyQues"
+                className="w-full border border-gray-300 rounded px-3 py-2"
+                rows={4}
+              />
+            </div>
+
+            <button
+              type="submit"
+              className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
+            >
+              Submit
+            </button>
+          </form>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default EventDetails;

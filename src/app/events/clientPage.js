@@ -1,6 +1,6 @@
 'use client';
 import React, { useEffect, useState } from "react";
-import EventCard from "@/components/EventCard";
+import EventCard from "@/components/Event/EventCard";
 import LoadingSpinner from "@/components/Ui/LoadingSpinner";
 
 export const metadata = {
