@@ -85,9 +85,8 @@ export default function AdminContactPage() {
           {filteredContacts.map((contact) => (
             <div
               key={contact._id}
-              className={`border rounded-lg p-4 shadow-sm transition bg-white hover:bg-gray-50 ${
-                contact.read ? 'opacity-70' : ''
-              }`}
+              className={`border rounded-lg p-4 shadow-sm transition bg-white hover:bg-gray-50 ${contact.read ? 'opacity-70' : ''
+                }`}
             >
               <div
                 className="cursor-pointer flex justify-between items-center"
@@ -95,18 +94,17 @@ export default function AdminContactPage() {
               >
                 <div>
                   <h2 className="text-lg font-semibold">{contact.name}</h2>
-                  <p className="text-sm text-gray-600">{contact.subject}</p>
+                  <p className="text-sm text-gray-600"><strong>Subject:</strong> {contact.subject}</p>
                 </div>
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     toggleReadStatus(contact._id, contact.read);
                   }}
-                  className={`text-xs px-3 py-1 rounded font-medium shadow-sm transition-colors ${
-                    contact.read
+                  className={`text-xs px-3 py-1 rounded font-medium shadow-sm transition-colors ${contact.read
                       ? 'bg-gray-500 text-white hover:bg-gray-600'
                       : 'bg-purple-600 text-white hover:bg-purple-700'
-                  }`}
+                    }`}
                 >
                   {contact.read ? 'Mark as Unread' : 'Mark as Read'}
                 </button>
@@ -115,7 +113,7 @@ export default function AdminContactPage() {
               {expanded === contact._id && (
                 <div className="mt-4 border-t pt-3 text-sm text-gray-700">
                   <p><strong>Email/Phone:</strong> {contact.contact}</p>
-                  <p className="mt-2 whitespace-pre-wrap">{contact.message}</p>
+                  <p className="mt-2 whitespace-pre-wrap"><strong>Message:</strong> {contact.message}</p>
                   <p className="text-xs text-gray-500 mt-2">
                     Submitted: {new Date(contact.createdAt).toLocaleString()}
                   </p>

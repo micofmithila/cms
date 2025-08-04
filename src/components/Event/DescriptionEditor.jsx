@@ -28,11 +28,10 @@ export default function DescriptionEditor({ value, onChange }) {
 
   const editor = (
     <div
-      className={`transition-all duration-300 ${
-        fullscreen
+      className={`transition-all duration-300 ${fullscreen
           ? 'fixed top-0 left-0 w-screen h-screen z-[9999] bg-white p-4'
           : ''
-      }`}
+        }`}
     >
       {/* Fullscreen Toggle Button */}
       <div className="flex justify-end mb-2">

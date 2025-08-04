@@ -1,389 +1,132 @@
-"use client";
-import { useState } from "react";
-import DescriptionEditor from "@/components/DescriptionEditor";
-import { z } from "zod";
-import { eventSchema } from "@/lib/validations";
+'use client';
 
-export default function EventsPageAdmin() {
-  const [formData, setFormData] = useState({
-    title: "",
-    desc: "",
-    posterUrl: "",
-    imagesArray: [""],
-    chiefGuests: [""],
-    registrationLimit: "",
-    registrationFee: "",
-    registrationLink: "",
-    registrationOpeningDate: "",
-    registrationClosingDate: "",
-    eventDate: "",
-    eventTime: "",
-    eventVenueAddress: "",
-    status: "draft"
+import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import DescriptionEditor from '@/components/Event/DescriptionEditor';
+
+const Input = ({ label, ...props }) => (
+  <div className="flex flex-col gap-1">
+    <label className="text-sm font-medium">{label}</label>
+    <input
+      className="px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+      {...props}
+    />
+  </div>
+);
+
+const Button = ({ children, ...props }) => (
+  <button
+    className="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 transition"
+    {...props}
+  >
+    {children}
+  </button>
+);
+
+const CreateEventPage = () => {
+  const router = useRouter();
+
+  const [eventData, setEventData] = useState({
+    title: '',
+    desc: '',
+    theme: '',
+    posterUrl: '',
+    registrationLimit: '',
+    registrationFee: '',
+    isRegistrationOpen: false,
+    eventDate: '',
+    eventTime: '',
+    eventVenueAddress: '',
+    status: 'draft',
   });
 
-  const [errors, setErrors] = useState({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitMessage, setSubmitMessage] = useState({ type: "", message: "" });
+  const [chiefGuests, setChiefGuests] = useState(['']);
+  const [imagesArray, setImagesArray] = useState(['']);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-
-    // Clear error for this field when user starts typing
-    if (errors[name]) {
-      setErrors(prev => {
-        const newErrors = { ...prev };
-        delete newErrors[name];
-        return newErrors;
-      });
-    }
-  };
-
-  const handleDescChange = (content) => {
-    setFormData(prev => ({ ...prev, desc: content }));
-
-    // Clear error if present
-    if (errors.desc) {
-      setErrors(prev => {
-        const newErrors = { ...prev };
-        delete newErrors.desc;
-        return newErrors;
-      });
-    }
-  };
-
-  const handleAddImage = () => {
-    setFormData(prev => ({
+  const handleEventChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setEventData((prev) => ({
       ...prev,
-      imagesArray: [...prev.imagesArray, ""]
-    }));
-  };
-
-  const handleImageChange = (index, value) => {
-    const updatedImages = [...formData.imagesArray];
-    updatedImages[index] = value;
-    setFormData(prev => ({
-      ...prev,
-      imagesArray: updatedImages
-    }));
-  };
-
-  const handleAddGuest = () => {
-    setFormData(prev => ({
-      ...prev,
-      chiefGuests: [...prev.chiefGuests, ""]
+      [name]: type === 'checkbox' ? checked : value,
     }));
   };
 
   const handleGuestChange = (index, value) => {
-    const updatedGuests = [...formData.chiefGuests];
-    updatedGuests[index] = value;
-    setFormData(prev => ({
-      ...prev,
-      chiefGuests: updatedGuests
-    }));
+    const newGuests = [...chiefGuests];
+    newGuests[index] = value;
+    setChiefGuests(newGuests);
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    setSubmitMessage({ type: "", message: "" });
-    setErrors({});
+  const handleImageChange = (index, value) => {
+    const newImages = [...imagesArray];
+    newImages[index] = value;
+    setImagesArray(newImages);
+  };
 
-    // Filter out empty values from arrays
-    const cleanFormData = {
-      ...formData,
-      imagesArray: formData.imagesArray.filter(img => img.trim() !== ""),
-      chiefGuests: formData.chiefGuests.filter(guest => guest.trim() !== "")
+  const addInput = (setter, state) => setter([...state, '']);
+  const removeInput = (setter, state, index) => {
+    const updated = [...state];
+    updated.splice(index, 1);
+    setter(updated);
+  };
+
+  const createEvent = async () => {
+    const payload = {
+      ...eventData,
+      chiefGuests: chiefGuests.filter(Boolean),
+      imagesArray: imagesArray.filter(Boolean),
     };
 
     try {
-      // Validate with Zod
-      eventSchema.parse(cleanFormData);
-
-      // Send data to API
-      const response = await fetch('/api/events', {
+      const res = await fetch('/api/events', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(cleanFormData),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to create event');
-      }
-
-      // Success
-      setSubmitMessage({
-        type: "success",
-        message: "Event created successfully"
-      });
-
-      // Reset form (optional)
-      setFormData({
-        title: "",
-        desc: "",
-        posterUrl: "",
-        imagesArray: [""],
-        chiefGuests: [""],
-        registrationLimit: "",
-        registrationFee: "",
-        registrationLink: "",
-        registrationOpeningDate: "",
-        registrationClosingDate: "",
-        eventDate: "",
-        eventTime: "",
-        eventVenueAddress: "",
-        status: "draft"
-      });
-    } catch (error) {
-      // Handle Zod validation errors
-      if (error instanceof z.ZodError) {
-        const fieldErrors = {};
-        error.errors.forEach(err => {
-          // Extract field name from path
-          const field = err.path[0];
-          fieldErrors[field] = err.message;
-        });
-        setErrors(fieldErrors);
-        setSubmitMessage({
-          type: "error",
-          message: "Please fix the validation errors"
-        });
+      if (res.ok) {
+        router.push('/dashboard/events');
       } else {
-        // Handle API errors
-        setSubmitMessage({
-          type: "error",
-          message: error.message || "Something went wrong"
-        });
+        console.error(await res.text());
       }
-    } finally {
-      setIsSubmitting(false);
+    } catch (err) {
+      console.error('Event creation failed:', err);
     }
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
-      <h2 className="text-2xl font-bold mb-6">Create / Edit Event</h2>
+    <div className="max-w-4xl mx-auto p-6 space-y-8">
+      <h1 className="text-2xl font-semibold">Create New Event</h1>
 
-      {submitMessage.message && (
-        <div className={`p-4 mb-6 rounded-md ${submitMessage.type === "success" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
-          }`}>
-          {submitMessage.message}
-        </div>
-      )}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Input label="Title" name="title" value={eventData.title} onChange={handleEventChange} required />
+        <Input label="Theme" name="theme" value={eventData.theme} onChange={handleEventChange} required />
+        <Input label="Poster URL" name="posterUrl" value={eventData.posterUrl} onChange={handleEventChange} required />
+        <Input label="Registration Limit" name="registrationLimit" type="number" value={eventData.registrationLimit} onChange={handleEventChange} required />
+        <Input label="Registration Fee" name="registrationFee" type="number" value={eventData.registrationFee} onChange={handleEventChange} required />
+        <Input label="Event Date" name="eventDate" type="date" value={eventData.eventDate} onChange={handleEventChange} required />
+        <Input label="Event Time" name="eventTime" type="time" value={eventData.eventTime} onChange={handleEventChange} required />
+        <Input label="Venue Address" name="eventVenueAddress" value={eventData.eventVenueAddress} onChange={handleEventChange} required />
 
-      <form className="space-y-5" onSubmit={handleSubmit}>
-        {/* Title */}
-        <div>
-          <label className="block font-medium mb-1">Event Title</label>
+        {/* Registration Open Checkbox */}
+        <div className="flex items-center gap-3 mt-2">
           <input
-            type="text"
-            name="title"
-            value={formData.title}
-            onChange={handleChange}
-            className={`w-full border rounded-md px-3 py-2 ${errors.title ? "border-red-500" : ""}`}
-            required
+            type="checkbox"
+            name="isRegistrationOpen"
+            checked={eventData.isRegistrationOpen}
+            onChange={handleEventChange}
+            className="w-5 h-5"
           />
-          {errors.title && <p className="text-red-500 text-sm mt-1">{errors.title}</p>}
+          <label className="text-sm font-medium">Is Registration Open?</label>
         </div>
 
-        {/* Description */}
-        <div>
-          <label className="block font-medium mb-1">Event Description</label>
-          <div className={`border rounded-md overflow-hidden quill-editor ${errors.desc ? "border-red-500" : ""}`}>
-            <DescriptionEditor value={formData.desc} onChange={handleDescChange} />
-          </div>
-          {errors.desc && <p className="text-red-500 text-sm mt-1">{errors.desc}</p>}
-        </div>
-
-        {/* Poster URL */}
-        <div>
-          <label className="block font-medium mb-1">Poster URL</label>
-          <input
-            type="url"
-            name="posterUrl"
-            value={formData.posterUrl}
-            onChange={handleChange}
-            className={`w-full border rounded-md px-3 py-2 ${errors.posterUrl ? "border-red-500" : ""}`}
-            required
-          />
-          {errors.posterUrl && <p className="text-red-500 text-sm mt-1">{errors.posterUrl}</p>}
-        </div>
-
-        {/* Images */}
-        <div>
-          <label className="block font-medium mb-1">Images</label>
-          {formData.imagesArray.map((img, index) => (
-            <div key={index} className="mb-2">
-              <input
-                type="url"
-                className={`w-full border rounded-md px-3 py-2 ${errors[`imagesArray.${index}`] ? "border-red-500" : ""
-                  }`}
-                placeholder={`Image URL #${index + 1}`}
-                value={img}
-                onChange={(e) => handleImageChange(index, e.target.value)}
-              />
-              {errors[`imagesArray.${index}`] && (
-                <p className="text-red-500 text-sm mt-1">{errors[`imagesArray.${index}`]}</p>
-              )}
-            </div>
-          ))}
-          <button
-            type="button"
-            onClick={handleAddImage}
-            className="text-blue-600 text-sm mt-1"
-          >
-            + Add another image
-          </button>
-        </div>
-
-        {/* Chief Guests */}
-        <div>
-          <label className="block font-medium mb-1">Chief Guests</label>
-          {formData.chiefGuests.map((guest, index) => (
-            <input
-              key={index}
-              type="text"
-              className="w-full border rounded-md px-3 py-2 mb-2"
-              placeholder={`Guest Name #${index + 1}`}
-              value={guest}
-              onChange={(e) => handleGuestChange(index, e.target.value)}
-            />
-          ))}
-          <button
-            type="button"
-            onClick={handleAddGuest}
-            className="text-blue-600 text-sm mt-1"
-          >
-            + Add another guest
-          </button>
-        </div>
-
-        {/* Registration Fields */}
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block font-medium mb-1">Registration Limit</label>
-            <input
-              type="number"
-              name="registrationLimit"
-              value={formData.registrationLimit}
-              onChange={handleChange}
-              className={`w-full border rounded-md px-3 py-2 ${errors.registrationLimit ? "border-red-500" : ""}`}
-              required
-            />
-            {errors.registrationLimit && <p className="text-red-500 text-sm mt-1">{errors.registrationLimit}</p>}
-          </div>
-          <div>
-            <label className="block font-medium mb-1">Registration Fee (₹)</label>
-            <input
-              type="number"
-              name="registrationFee"
-              value={formData.registrationFee}
-              onChange={handleChange}
-              className={`w-full border rounded-md px-3 py-2 ${errors.registrationFee ? "border-red-500" : ""}`}
-              required
-            />
-            {errors.registrationFee && <p className="text-red-500 text-sm mt-1">{errors.registrationFee}</p>}
-          </div>
-        </div>
-
-        {/* Registration Link */}
-        <div>
-          <label className="block font-medium mb-1">Registration Link</label>
-          <input
-            type="url"
-            name="registrationLink"
-            value={formData.registrationLink}
-            onChange={handleChange}
-            className={`w-full border rounded-md px-3 py-2 ${errors.registrationLink ? "border-red-500" : ""}`}
-            required
-          />
-          {errors.registrationLink && <p className="text-red-500 text-sm mt-1">{errors.registrationLink}</p>}
-        </div>
-
-        {/* Dates */}
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block font-medium mb-1">Opening Date</label>
-            <input
-              type="date"
-              name="registrationOpeningDate"
-              value={formData.registrationOpeningDate}
-              onChange={handleChange}
-              className={`w-full border rounded-md px-3 py-2 ${errors.registrationOpeningDate ? "border-red-500" : ""}`}
-              required
-            />
-            {errors.registrationOpeningDate && <p className="text-red-500 text-sm mt-1">{errors.registrationOpeningDate}</p>}
-          </div>
-          <div>
-            <label className="block font-medium mb-1">Closing Date</label>
-            <input
-              type="date"
-              name="registrationClosingDate"
-              value={formData.registrationClosingDate}
-              onChange={handleChange}
-              className={`w-full border rounded-md px-3 py-2 ${errors.registrationClosingDate ? "border-red-500" : ""}`}
-              required
-            />
-            {errors.registrationClosingDate && <p className="text-red-500 text-sm mt-1">{errors.registrationClosingDate}</p>}
-          </div>
-        </div>
-
-        {/* Event Date/Time */}
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block font-medium mb-1">Event Date</label>
-            <input
-              type="date"
-              name="eventDate"
-              value={formData.eventDate}
-              onChange={handleChange}
-              className={`w-full border rounded-md px-3 py-2 ${errors.eventDate ? "border-red-500" : ""}`}
-              required
-            />
-            {errors.eventDate && <p className="text-red-500 text-sm mt-1">{errors.eventDate}</p>}
-          </div>
-          <div>
-            <label className="block font-medium mb-1">Event Time</label>
-            <input
-              type="time"
-              name="eventTime"
-              value={formData.eventTime}
-              onChange={handleChange}
-              className={`w-full border rounded-md px-3 py-2 ${errors.eventTime ? "border-red-500" : ""}`}
-              required
-            />
-            {errors.eventTime && <p className="text-red-500 text-sm mt-1">{errors.eventTime}</p>}
-          </div>
-        </div>
-
-        {/* Venue Address */}
-        <div>
-          <label className="block font-medium mb-1">Venue Address</label>
-          <textarea
-            name="eventVenueAddress"
-            value={formData.eventVenueAddress}
-            onChange={handleChange}
-            className={`w-full border rounded-md px-3 py-2 ${errors.eventVenueAddress ? "border-red-500" : ""}`}
-            rows="2"
-            required
-          />
-          {errors.eventVenueAddress && <p className="text-red-500 text-sm mt-1">{errors.eventVenueAddress}</p>}
-        </div>
-
-        {/* Status */}
-        <div>
-          <label className="block font-medium mb-1">Event Status</label>
+        <div className="flex flex-col gap-1">
+          <label className="text-sm font-medium">Status</label>
           <select
             name="status"
-            value={formData.status}
-            onChange={handleChange}
-            className="w-full border rounded-md px-3 py-2"
+            value={eventData.status}
+            onChange={handleEventChange}
+            className="px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="draft">Draft</option>
             <option value="upcoming">Upcoming</option>
@@ -391,18 +134,68 @@ export default function EventsPageAdmin() {
             <option value="cancelled">Cancelled</option>
           </select>
         </div>
+      </div>
 
-        {/* Submit */}
-        <div className="pt-4">
-          <button
-            type="submit"
-            className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 disabled:bg-blue-400"
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? "Saving..." : "Save Event"}
-          </button>
-        </div>
-      </form>
+      {/* Chief Guests Dynamic Fields */}
+      <div>
+        <label className="text-sm font-medium mb-2 block">Chief Guests</label>
+        {chiefGuests.map((val, i) => (
+          <div key={i} className="flex gap-2 mb-2">
+            <input
+              type="text"
+              value={val}
+              onChange={(e) => handleGuestChange(i, e.target.value)}
+              className="flex-1 px-3 py-2 border rounded-lg"
+              placeholder={`Chief Guest ${i + 1}`}
+            />
+            {i === chiefGuests.length - 1 && (
+              <button type="button" onClick={() => addInput(setChiefGuests, chiefGuests)} className="text-blue-600 text-sm">+ Add</button>
+            )}
+            {chiefGuests.length > 1 && (
+              <button type="button" onClick={() => removeInput(setChiefGuests, chiefGuests, i)} className="text-red-500 text-sm">Remove</button>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {/* Images Array Dynamic Fields */}
+      <div>
+        <label className="text-sm font-medium mb-2 block">Images</label>
+        {imagesArray.map((val, i) => (
+          <div key={i} className="flex gap-2 mb-2">
+            <input
+              type="text"
+              value={val}
+              onChange={(e) => handleImageChange(i, e.target.value)}
+              className="flex-1 px-3 py-2 border rounded-lg"
+              placeholder={`Image URL ${i + 1}`}
+            />
+            {i === imagesArray.length - 1 && (
+              <button type="button" onClick={() => addInput(setImagesArray, imagesArray)} className="text-blue-600 text-sm">+ Add</button>
+            )}
+            {imagesArray.length > 1 && (
+              <button type="button" onClick={() => removeInput(setImagesArray, imagesArray, i)} className="text-red-500 text-sm">Remove</button>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {/* Description Editor */}
+      <div>
+        <label className="text-sm font-medium mb-1 block">Description</label>
+        <DescriptionEditor
+          value={eventData.desc}
+          onChange={(value) =>
+            setEventData((prev) => ({ ...prev, desc: value }))
+          }
+        />
+      </div>
+
+      <div className="pt-6">
+        <Button type="button" onClick={createEvent}>Create Event</Button>
+      </div>
     </div>
   );
-}
+};
+
+export default CreateEventPage;

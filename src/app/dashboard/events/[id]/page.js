@@ -1,293 +1,192 @@
-'use client'
-// app/events/[id]/page.js
-import React, { useState } from "react";
+'use client';
 
+import { useEffect, useState } from 'react';
+import { useParams } from 'next/navigation';
+import DOMPurify from 'dompurify';
+import Link from 'next/link';
 
-async function getEventData(id) {
-    const baseUrl = process.env.BASE_URL || 'http://localhost:3000';  // Adjust for your environment
+const EventDetails = () => {
+  const { id } = useParams();
+  const [event, setEvent] = useState(null);
+  const [showForm, setShowForm] = useState(false);
 
-    const res = await fetch(`${baseUrl}/api/events?id=${id}`, {
-        cache: "no-store",
-    });
-
-    if (!res.ok) {
-        throw new Error("Failed to fetch event data");
-    }
-
-    return res.json();
-}
-
-export default async function EditEventPage({ params }) {
-    const { id } = await params;
-    const event = await getEventData(id);
-    return <EditEventClient event={event} />;
-}
-
-function EditEventClient({ event }) {
-    const [editMode, setEditMode] = useState(false);
-
-    const handleToggleEdit = () => {
-        setEditMode(!editMode);
+  useEffect(() => {
+    const fetchEvent = async () => {
+      try {
+        const res = await fetch(`/api/events/${id}`);
+        const data = await res.json();
+        setEvent(data);
+      } catch (err) {
+        console.error('Failed to fetch event:', err);
+      }
     };
 
-    return (
-        <div className="max-w-3xl mx-auto p-6">
-            {/* Top buttons */}
-            <div className="flex justify-between items-center mb-4">
-                <h1 className="text-2xl font-bold">Event Details</h1>
-                <div className="space-x-2">
-                    <button
-                        onClick={handleToggleEdit}
-                        className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded"
-                    >
-                        {editMode ? "Cancel Edit" : "Edit"}
-                    </button>
-                    <button
-                        onClick={() => alert("Delete action not implemented yet.")}
-                        className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded"
-                    >
-                        Delete
-                    </button>
-                </div>
-            </div>
+    fetchEvent();
+  }, [id]);
 
-            <div className="p-4 bg-white rounded shadow-md space-y-3">
-                {editMode ? (
-                    // 🔧 Edit Mode (Form)
-                    <form className="space-y-4">
-                        <input
-                            type="text"
-                            name="title"
-                            defaultValue={event.title}
-                            className="w-full border border-gray-300 rounded px-4 py-2"
-                            placeholder="Title"
-                        />
+  if (!event) return <div className="p-6 text-center">Loading event...</div>;
 
-                        <input
-                            type="text"
-                            name="posterUrl"
-                            defaultValue={event.posterUrl}
-                            className="w-full border border-gray-300 rounded px-4 py-2"
-                            placeholder="Poster URL"
-                        />
+  const {
+    title,
+    posterUrl,
+    eventDate,
+    eventTime,
+    eventVenueAddress,
+    registrationFee,
+    status,
+    isRegistrationOpen,
+    desc
+  } = event;
 
-                        <textarea
-                            name="desc"
-                            defaultValue={event.desc}
-                            rows={6}
-                            className="w-full border border-gray-300 rounded px-4 py-2"
-                            placeholder="Event Description"
-                        />
+  return (
+    <div className="max-w-5xl mx-auto px-4 py-8 space-y-6">
+      {/* Title */}
+      <h1 className="text-3xl font-bold text-center">{title}</h1>
 
-                        <input
-                            type="text"
-                            name="theme"
-                            defaultValue={event.theme}
-                            className="w-full border border-gray-300 rounded px-4 py-2"
-                            placeholder="Theme"
-                        />
+      {/* Poster */}
+      {posterUrl && (
+        <img
+          src={posterUrl}
+          alt={title}
+          className="w-full max-h-[400px] object-cover rounded-xl shadow-md"
+        />
+      )}
 
-                        <input
-                            type="text"
-                            name="chiefGuests"
-                            defaultValue={event.chiefGuests?.join(", ")}
-                            className="w-full border border-gray-300 rounded px-4 py-2"
-                            placeholder="Chief Guests (comma separated)"
-                        />
-
-                        <input
-                            type="number"
-                            name="registrationLimit"
-                            defaultValue={event.registrationLimit}
-                            className="w-full border border-gray-300 rounded px-4 py-2"
-                            placeholder="Registration Limit"
-                        />
-
-                        <input
-                            type="text"
-                            name="registrationFee"
-                            defaultValue={event.registrationFee}
-                            className="w-full border border-gray-300 rounded px-4 py-2"
-                            placeholder="Registration Fee"
-                        />
-
-                        <input
-                            type="url"
-                            name="registrationLink"
-                            defaultValue={event.registrationLink}
-                            className="w-full border border-gray-300 rounded px-4 py-2"
-                            placeholder="Registration Link"
-                        />
-
-                        <input
-                            type="date"
-                            name="registrationOpeningDate"
-                            defaultValue={event.registrationOpeningDate?.slice(0, 10)}
-                            className="w-full border border-gray-300 rounded px-4 py-2"
-                        />
-
-                        <input
-                            type="date"
-                            name="registrationClosingDate"
-                            defaultValue={event.registrationClosingDate?.slice(0, 10)}
-                            className="w-full border border-gray-300 rounded px-4 py-2"
-                        />
-
-                        <input
-                            type="date"
-                            name="eventDate"
-                            defaultValue={event.eventDate?.slice(0, 10)}
-                            className="w-full border border-gray-300 rounded px-4 py-2"
-                        />
-
-                        <input
-                            type="time"
-                            name="eventTime"
-                            defaultValue={event.eventTime}
-                            className="w-full border border-gray-300 rounded px-4 py-2"
-                        />
-
-                        <input
-                            type="text"
-                            name="eventVenueAddress"
-                            defaultValue={event.eventVenueAddress}
-                            className="w-full border border-gray-300 rounded px-4 py-2"
-                            placeholder="Venue Address"
-                        />
-
-                        <input
-                            type="text"
-                            name="status"
-                            defaultValue={event.status}
-                            className="w-full border border-gray-300 rounded px-4 py-2"
-                            placeholder="Status (upcoming, ongoing, closed)"
-                        />
-
-                        <button
-                            type="submit"
-                            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded"
-                        >
-                            Save Changes
-                        </button>
-                    </form>
-                ) : (
-                    // 📄 View Mode
-                    <>
-                        <h2 className="text-xl font-bold text-gray-900">{event.title || "Untitled Event"}</h2>
-
-                        {event.posterUrl && (
-                            <div>
-                                <strong>Poster:</strong>
-                                <img src={event.posterUrl} alt="Event Poster" className="w-full max-w-md mt-2 rounded" />
-                            </div>
-                        )}
-
-                        {event.imagesArray?.length > 0 && (
-                            <div>
-                                <strong>Images:</strong>
-                                <div className="flex gap-2 mt-2 overflow-x-auto">
-                                    {event.imagesArray.map((img, index) => (
-                                        <img
-                                            key={index}
-                                            src={img}
-                                            alt={`Image ${index + 1}`}
-                                            className="w-32 h-32 object-cover rounded"
-                                        />
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-
-                        <p className="text-gray-700">
-                            <strong>Theme:</strong> {event.theme || "No theme specified"}
-                        </p>
-
-                        {event.chiefGuests?.length > 0 && (
-                            <p className="text-gray-700">
-                                <strong>Chief Guests:</strong> {event.chiefGuests.join(", ")}
-                            </p>
-                        )}
-
-                        <p className="text-gray-700">
-                            <strong>Registration Limit:</strong> {event.registrationLimit || "No limit"}
-                        </p>
-
-                        <p className="text-gray-700">
-                            <strong>Registration Fee:</strong>{" "}
-                            {event.registrationFee === 0 ? "Free" : `₹${event.registrationFee}`}
-                        </p>
-
-                        {event.registrationLink && (
-                            <p className="text-blue-600">
-                                <strong>Registration Link:</strong>{" "}
-                                <a
-                                    href={event.registrationLink}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="underline"
-                                >
-                                    {event.registrationLink}
-                                </a>
-                            </p>
-                        )}
-
-                        <p className="text-gray-700">
-                            <strong>Registration Opens:</strong>{" "}
-                            {event.registrationOpeningDate
-                                ? new Date(event.registrationOpeningDate).toLocaleDateString("en-US", {
-                                    year: "numeric",
-                                    month: "long",
-                                    day: "numeric",
-                                })
-                                : "Not specified"}
-                        </p>
-
-                        <p className="text-gray-700">
-                            <strong>Registration Closes:</strong>{" "}
-                            {event.registrationClosingDate
-                                ? new Date(event.registrationClosingDate).toLocaleDateString("en-US", {
-                                    year: "numeric",
-                                    month: "long",
-                                    day: "numeric",
-                                })
-                                : "Not specified"}
-                        </p>
-
-                        <p className="text-gray-700">
-                            <strong>Event Date:</strong>{" "}
-                            {event.eventDate
-                                ? new Date(event.eventDate).toLocaleDateString("en-US", {
-                                    year: "numeric",
-                                    month: "long",
-                                    day: "numeric",
-                                })
-                                : "Date not available"}
-                        </p>
-
-                        <p className="text-gray-700">
-                            <strong>Event Time:</strong>{" "}
-                            {event.eventTime
-                                ? new Date(`1970-01-01T${event.eventTime}`).toLocaleTimeString("en-US", {
-                                    hour: "numeric",
-                                    minute: "2-digit",
-                                    hour12: true,
-                                })
-                                : "Time not available"}
-                        </p>
-
-                        <p className="text-gray-700">
-                            <strong>Venue:</strong> {event.eventVenueAddress || "Venue not specified"}
-                        </p>
-
-                        <p className="text-gray-700">
-                            <strong>Status:</strong>{" "}
-                            <span className="capitalize">{event.status || "draft"}</span>
-                        </p>
-
-                        <div className="prose" dangerouslySetInnerHTML={{ __html: event.desc }} />
-                    </>
-                )}
-            </div>
+      {/* Event Meta */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 bg-gray-50 p-6 rounded-xl shadow-sm text-sm">
+        <div><strong>Date:</strong> {new Date(eventDate).toLocaleDateString()}</div>
+        <div><strong>Time:</strong> {eventTime}</div>
+        <div><strong>Venue:</strong> {eventVenueAddress}</div>
+        <div><strong>Registration Fee:</strong> {registrationFee === 0 ? 'Free' : `₹${registrationFee}`}</div>
+        <div>
+          <strong>Status:</strong>{' '}
+          <span className={`font-semibold ${status === 'upcoming' ? 'text-green-600' : status === 'cancelled' ? 'text-red-600' : status === 'completed' ? 'text-gray-600' : 'text-yellow-500'}`}>
+            {status}
+          </span>
         </div>
-    );
-}
+        <div>
+          <strong>Registration:</strong>{' '}
+          {isRegistrationOpen ? (
+            <span className="text-green-600 font-semibold">Open</span>
+          ) : (
+            <span className="text-red-600 font-semibold">Closed</span>
+          )}
+        </div>
+      </div>
+
+      {/* Description */}
+      <div className="bg-white p-6 rounded-xl shadow-sm">
+        <h2 className="text-xl font-semibold mb-4">Description</h2>
+        <div
+          className="prose max-w-none"
+          dangerouslySetInnerHTML={{
+            __html: DOMPurify.sanitize(desc || '')
+          }}
+        />
+      </div>
+
+      {/* Register Button */}
+      <div className="text-center">
+        <button
+          onClick={() => setShowForm((prev) => !prev)}
+          className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition"
+        >
+          {showForm ? 'Close Registration' : 'Register Now'}
+        </button>
+      </div>
+
+      <div className="text-center">
+        <Link href={`/dashboard/events/${event._id}/registration`}>
+          <button className="bg-emerald-600 hover:bg-emerald-700 text-white text-sm px-4 py-2 rounded-lg shadow transition">
+            📋 View Registrations
+          </button>
+        </Link>
+      </div>
+
+
+      {isRegistrationOpen && showForm && (
+        <div className="bg-white p-6 mt-6 rounded-xl shadow-sm">
+          <h2 className="text-xl font-semibold mb-4">Register for this Event</h2>
+          <form
+            onSubmit={async (e) => {
+              e.preventDefault();
+
+              const formData = {
+                name: e.target.name.value.trim(),
+                email: e.target.email.value.trim(),
+                phone: e.target.phone.value.trim(),
+                category: e.target.category.value.trim(),
+                age: e.target.age.value.trim(),
+                socialLink: e.target.socialLink.value.trim(),
+                otherQues: e.target.otherQues.value.trim(),
+                contentLink: e.target.contentLink.value.trim()
+              };
+
+              try {
+                const res = await fetch(`/api/events/${id}/register`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify(formData)
+                });
+
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || 'Registration failed');
+
+                alert('Successfully registered!');
+                setShowForm(false);
+              } catch (err) {
+                alert(err.message);
+              }
+            }}
+            className="space-y-4"
+          >
+            {[
+              { name: 'name', label: 'Full Name', type: 'text' },
+              { name: 'email', label: 'Email', type: 'email' },
+              { name: 'phone', label: 'Phone Number', type: 'tel' },
+              { name: 'category', label: 'Category', type: 'text' },
+              { name: 'age', label: 'Age', type: 'number' },
+              { name: 'socialLink', label: 'Social Link', type: 'url' },
+              { name: 'otherQues', label: 'Other Questions', type: 'textarea' },
+              { name: 'contentLink', label: 'Content Link (e.g., portfolio, video)', type: 'url' }
+            ].map((field) => (
+              <div key={field.name}>
+                <label htmlFor={field.name} className="block text-sm font-medium mb-1">
+                  {field.label} *
+                </label>
+                {field.type === 'textarea' ? (
+                  <textarea
+                    id={field.name}
+                    name={field.name}
+                    required
+                    className="w-full border border-gray-300 rounded px-3 py-2"
+                    rows={4}
+                  />
+                ) : (
+                  <input
+                    type={field.type}
+                    id={field.name}
+                    name={field.name}
+                    required
+                    className="w-full border border-gray-300 rounded px-3 py-2"
+                  />
+                )}
+              </div>
+            ))}
+
+            <button
+              type="submit"
+              className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
+            >
+              Submit
+            </button>
+          </form>
+        </div>
+      )}
+
+
+    </div>
+  );
+};
+
+export default EventDetails;
