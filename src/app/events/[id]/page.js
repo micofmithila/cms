@@ -8,6 +8,9 @@ const EventDetails = () => {
   const { id } = useParams();
   const [event, setEvent] = useState(null);
   const [showForm, setShowForm] = useState(false);
+  const [contentFile, setContentFile] = useState(null);
+  const [fileName, setFileName] = useState('');
+
 
   useEffect(() => {
     const fetchEvent = async () => {
@@ -45,6 +48,15 @@ const EventDetails = () => {
     setShowForm((prev) => !prev);
   };
 
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setContentFile(file);
+      setFileName(file.name);
+    }
+  };
+
+
   return (
     <div className="max-w-5xl mx-auto px-4 py-8 space-y-6">
       <h1 className="text-3xl font-bold text-center">{title}</h1>
@@ -58,10 +70,10 @@ const EventDetails = () => {
       )}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 bg-gray-50 p-6 rounded-xl shadow-sm text-sm">
-        <div><strong>Date:</strong> {(event.eventDate
+        <div><strong>Date:</strong> {(eventDate
           ? new Date(event.eventDate).toLocaleDateString()
           : "To Be Announced")}</div>
-        <div><strong>Time:</strong> {(event.eventTime || "To Be Announced")}</div>
+        <div><strong>Time:</strong> {(eventTime || "To Be Announced")}</div>
         <div><strong>Venue:</strong> {eventVenueAddress}</div>
         <div><strong>Registration Fee:</strong> {registrationFee === 0 ? 'Free' : `₹${registrationFee}`}</div>
         <div>
@@ -104,23 +116,26 @@ const EventDetails = () => {
           <form
             onSubmit={async (e) => {
               e.preventDefault();
-              const formData = {
-                name: e.target.name.value.trim(),
-                email: e.target.email.value.trim(),
-                phone: e.target.phone.value.trim(),
-                category: e.target.category.value.trim(),
-                age: e.target.age.value.trim(),
-                address: e.target.address.value.trim(),
-                socialLink: e.target.socialLink.value.trim(),
-                howKnowAboutMic: e.target.howKnowAboutMic.value.trim(),
-                anyQues: e.target.anyQues.value.trim()
-              };
+              if (!contentFile) {
+                alert('Please upload your content.');
+                return;
+              }
+              const formData = new FormData();
+              formData.append('name', e.target.name.value.trim());
+              formData.append('email', e.target.email.value.trim());
+              formData.append('phone', e.target.phone.value.trim());
+              formData.append('category', e.target.category.value.trim());
+              formData.append('age', e.target.age.value.trim());
+              formData.append('address', e.target.address.value.trim());
+              formData.append('socialLink', e.target.socialLink.value.trim());
+              formData.append('howKnowAboutMic', e.target.howKnowAboutMic.value.trim());
+              formData.append('anyQues', e.target.anyQues.value.trim());
+              formData.append('contentFile', contentFile);
 
               try {
                 const res = await fetch(`/api/events/${id}/register`, {
                   method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify(formData)
+                  body: formData
                 });
 
                 const data = await res.json();
@@ -201,6 +216,23 @@ const EventDetails = () => {
                 rows={4}
               />
             </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                Upload Your Content (script) *
+              </label>
+              <input
+                type="file"
+                accept="image/*,video/*,audio/*,application/pdf"
+                required
+                onChange={handleFileChange}
+                className="w-full border border-gray-300 rounded px-3 py-2"
+              />
+              {fileName && (
+                <p className="text-sm text-gray-500 mt-1">Selected: {fileName}</p>
+              )}
+            </div>
+
 
             <button
               type="submit"

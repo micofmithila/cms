@@ -10,11 +10,11 @@ export default function FeaturedEventSection({ event }) {
     );
   }
 
-  const eventDate = new Date(event.date).toLocaleDateString("en-IN", {
+  const eventDate = (event.eventDate ? new Date(event.date).toLocaleDateString("en-IN", {
     day: "numeric",
     month: "long",
     year: "numeric",
-  });
+  }) : "To be announced");
 
   return (
     <section className="bg-gradient-to-br from-blue-50 to-purple-50 py-16 px-4 md:px-12">
@@ -32,35 +32,26 @@ export default function FeaturedEventSection({ event }) {
             />
           </div>
 
-          <div className="w-full md:w-1/2 space-y-6">
+          <div className="w-full md:w-1/2 space-y-2">
             <h3 className="text-3xl font-bold text-gray-900 leading-tight">
               {event.title}
             </h3>
-            <p className="text-sm text-gray-500">📅 {eventDate}</p>
+            <p className="text-sm text-gray-500">🗓️ {eventDate}</p>
+            <p className="text-sm text-gray-500">🕒 {(event.eventTime || "To Be Announced")}</p>
+            <p className="text-sm text-gray-500">📍 {event.eventVenueAddress}</p>
+            
 
             <div
               className="text-base text-gray-700 leading-relaxed max-h-44 overflow-hidden"
-              dangerouslySetInnerHTML={{ __html: event.description || "" }}
+              dangerouslySetInnerHTML={{ __html: event.desc || "" }}
             />
 
-            <div className="flex flex-wrap gap-4 pt-4">
+            <div className="pt-4 w-full">
               <Link href={`/events/${event._id}`}>
-                <button className="bg-gradient-to-r from-blue-600 to-purple-600 text-white font-medium px-6 py-2 rounded-full shadow hover:from-blue-700 hover:to-purple-700 transition">
-                  View Details
+                <button className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white font-medium px-6 py-2 rounded-full shadow hover:from-blue-700 hover:to-purple-700 transition">
+                  {event.isRegistrationOpen ? 'Register Now' : 'View Event'}
                 </button>
               </Link>
-
-              {event.registrationLink && (
-                <a
-                  href={event.registrationLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <button className="bg-green-500 hover:bg-green-600 text-white font-medium px-6 py-2 rounded-full shadow transition">
-                    Register Now
-                  </button>
-                </a>
-              )}
             </div>
           </div>
         </div>
