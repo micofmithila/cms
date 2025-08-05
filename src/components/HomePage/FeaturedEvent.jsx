@@ -1,6 +1,25 @@
+'use client'
 import Link from "next/link";
+import React, { useEffect, useState } from "react";
+import LoadingSpinner from "@/components/Ui/LoadingSpinner";
 
-export default function FeaturedEventSection({ event }) {
+export default function FeaturedEventSection() {
+  const [event, setEvent] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+      fetch("/api/events/featured")
+        .then((res) => res.json())
+        .then((data) => {
+          setEvent(data);
+          setLoading(false);
+        })
+        .catch((err) => {
+          console.error("Failed to fetch events", err);
+          setLoading(false);
+        });
+    }, []);
+
   if (!event) {
     return (
       <section className="py-16 px-4 md:px-12 text-center">
