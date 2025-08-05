@@ -32,7 +32,7 @@ const EventCard = ({ event }) => {
 
       <div className="p-5">
         <h2 className="text-xl font-semibold text-gray-800 mb-2">{event.title}</h2>
-        <p className="text-sm text-gray-500 mb-1">📅 {formattedEventDate}</p>
+        <p className="text-sm text-gray-500 mb-1">🗓️ {formattedEventDate}</p>
         <p className="text-sm text-gray-500 mb-4">🕒 {formattedTime}</p>
 
         <div
