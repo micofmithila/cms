@@ -48,14 +48,16 @@ const EventDetails = () => {
         <img
           src={posterUrl}
           alt={title}
-          className="w-full max-h-[400px] object-cover rounded-xl shadow-md"
+          className="max-w-full max-h-[600px] object-contain rounded-xl shadow-md mx-auto"
         />
       )}
 
       {/* Event Meta */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 bg-gray-50 p-6 rounded-xl shadow-sm text-sm">
-        <div><strong>Date:</strong> {new Date(eventDate).toLocaleDateString()}</div>
-        <div><strong>Time:</strong> {eventTime}</div>
+        <div><strong>Date:</strong> {(event.eventDate
+          ? new Date(event.eventDate).toLocaleDateString()
+          : "To Be Announced")}</div>
+        <div><strong>Time:</strong> {(event.eventTime || "To Be Announced")}</div>
         <div><strong>Venue:</strong> {eventVenueAddress}</div>
         <div><strong>Registration Fee:</strong> {registrationFee === 0 ? 'Free' : `₹${registrationFee}`}</div>
         <div>
