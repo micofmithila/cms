@@ -6,9 +6,11 @@ import Link from 'next/link';
 const AdminEventCard = ({ event }) => {
   const cleanHTML = DOMPurify.sanitize(event.desc || '');
 
-  const formattedEventDate = event.eventDate
-    ? new Date(event.eventDate).toLocaleDateString()
-    : 'To Be Announced';
+  const formattedEventDate = (event.eventDate ? new Date(event.eventDate).toLocaleDateString("en-IN", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  }) : "To be announced");
 
   const formattedTime = event.eventTime || 'To Be Announced';
 
