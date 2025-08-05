@@ -13,6 +13,7 @@ const EventRegistrationsSchema = new mongoose.Schema({
   socialLink: { type: String, required: true },
   howKnowAboutMic: { type: String, required: true },
   anyQues: { type: String },
+  contentLink: { type: String, required: true },
   createdAt: { type: Date, default: Date.now }
 });
 
