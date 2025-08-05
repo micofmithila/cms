@@ -219,7 +219,7 @@ const EventDetailsAdmin = () => {
 
             <div>
               <label className="block text-sm font-medium mb-1">
-                Upload Your Content (required)
+                Upload Your Content (script) *
               </label>
               <input
                 type="file"

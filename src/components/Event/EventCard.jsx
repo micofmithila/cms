@@ -33,7 +33,8 @@ const EventCard = ({ event }) => {
       <div className="p-5">
         <h2 className="text-xl font-semibold text-gray-800 mb-2">{event.title}</h2>
         <p className="text-sm text-gray-500 mb-1">🗓️ {formattedEventDate}</p>
-        <p className="text-sm text-gray-500 mb-4">🕒 {formattedTime}</p>
+        <p className="text-sm text-gray-500 mb-1">🕒 {formattedTime}</p>
+        <p className="text-sm text-gray-500 mb-4">📍 {event.eventVenueAddress}</p>
 
         <div
           className="text-sm text-gray-700 line-clamp-4"
@@ -44,10 +45,7 @@ const EventCard = ({ event }) => {
         <div className="mt-4">
           <Link href={`/events/${event._id}`}>
             <button
-              className={`w-full text-white text-sm font-medium px-8 py-2 rounded-lg shadow transition ${event.isRegistrationOpen
-                  ? 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700'
-                  : 'bg-gray-500 hover:bg-gray-600'
-                }`}
+              className={`w-full text-white text-sm font-medium px-8 py-2 rounded-lg shadow transition bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700`}
             >
               {event.isRegistrationOpen ? 'Register Now' : 'View Event'}
             </button>

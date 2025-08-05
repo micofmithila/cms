@@ -10,15 +10,25 @@ import Link from "next/link";
 export default function Home() {
 
   const heroSectionImage = "https://res.cloudinary.com/shivanshucloud/image/upload/v1750271374/micofmithila/gallery/kcdk6izk5jdyyk2o9p3k.jpg"
-  
+
   const featuredEvent = {
-    _id: "event123",
-    title: "Mic of Mithila Open Mic Season 3",
-    date: "2025-07-20",
-    description: "<p>Join us for an amazing open mic filled with music, poetry, and storytelling from talented artists across Mithila!</p>",
-    posterUrl:
-      "https://res.cloudinary.com/shivanshucloud/image/upload/v1747382806/micofmithila/gallery/egss5900jbk7aq6t7xbm.jpg",
-    registrationLink: "#",
+    "_id": "6891c8600a0d4288ef63ec01",
+    "title": "🎤 Mic of Mithila – Episode 4 | Coming Soon",
+    "desc": "\u003Ch2\u003E\u003Cstrong\u003EDear Performer,\u003C/strong\u003E\u003C/h2\u003E\u003Cp\u003EWe’re beyond excited to unveil \u003Cstrong\u003EEpisode 4\u003C/strong\u003E of \u003Cem\u003EMic of Mithila\u003C/em\u003E — a soulful stage that celebrates \u003Cstrong\u003Ecreativity, culture, and unfiltered expression\u003C/strong\u003E.\u003C/p\u003E\u003Cp\u003EThis edition is all about the most cherished emotion of all — \u003Cstrong\u003ELove\u003C/strong\u003E.\u003C/p\u003E\u003Cp\u003EBecause this is the \u003Cstrong\u003EMonth of Love\u003C/strong\u003E:\u003C/p\u003E\u003Cp\u003E❤️ \u003Cstrong\u003ELove for the Nation\u003C/strong\u003E – \u003Cem\u003EIndependence Day\u003C/em\u003E\u003C/p\u003E\u003Cp\u003E💛 \u003Cstrong\u003ELove for Siblings\u003C/strong\u003E – \u003Cem\u003ERaksha Bandhan\u003C/em\u003E\u003C/p\u003E\u003Cp\u003E💙 \u003Cstrong\u003ELove for the Divine &amp; Beloved\u003C/strong\u003E – \u003Cem\u003EJanmashtami\u003C/em\u003E\u003C/p\u003E\u003Cp\u003E\u003Cbr\u003E\u003C/p\u003E\u003Ch2\u003E\u003Cstrong\u003E\"Coming This August\"\u003C/strong\u003E\u003C/h2\u003E\u003Ch3\u003E🎟️ \u003Cstrong\u003EEntry:\u003C/strong\u003E Just bring your smile! \u003Cem\u003E(Free Registration | Free Entry)\u003C/em\u003E\u003C/h3\u003E\u003Cp\u003E\u003Cbr\u003E\u003C/p\u003E\u003Cp\u003ESo whether you spin verses of poetry, bring characters to life through storytelling or mimicry, crack up the crowd with stand-up, or have a unique act that deserves the spotlight — this is your moment to shine.\u003C/p\u003E\u003Cp\u003E\u003Cbr\u003E\u003C/p\u003E\u003Cp\u003E\u003Cstrong\u003ERegistrations haven’t opened yet\u003C/strong\u003E — but keep an eye out! We’ll announce soon so you can claim your spot.\u003C/p\u003E\u003Cp\u003E\u003Cbr\u003E\u003C/p\u003E\u003Cp\u003ELet your voice, wit, and performance be the echo of love we all celebrate.\u003C/p\u003E\u003Cp\u003EWe can't wait to feel your vibe on stage.\u003C/p\u003E\u003Cp\u003E\u003Cbr\u003E\u003C/p\u003E\u003Cp\u003E\u003Cstrong\u003ESee you soon!\u003C/strong\u003E\u003C/p\u003E\u003Cp\u003E📧 For any queries: \u003Ca href=\"https://www.micofmithila.in/contact\" rel=\"noopener noreferrer\" target=\"_blank\"\u003Emicofmithila.in/contact\u003C/a\u003E or \u003Ca href=\"mailto:micofmithila@gmail.com\" rel=\"noopener noreferrer\" target=\"_blank\"\u003Emicofmithila@gmail.com\u003C/a\u003E\u003C/p\u003E",
+    "theme": "Love",
+    "posterUrl": "https://res.cloudinary.com/shivanshucloud/image/upload/v1754383716/micofmithila/gallery/zabothoi9kgmralytj3w.jpg",
+    "imagesArray": [],
+    "chiefGuests": [],
+    "registrationLimit": 100,
+    "registrationFee": 0,
+    "isRegistrationOpen": false,
+    "eventDate": null,
+    "eventTime": "",
+    "eventVenueAddress": "To be announced",
+    "status": "upcoming",
+    "createdBy": "68033c401f4d651a19d44f0f",
+    "createdAt": "2025-08-05T09:01:20.070Z",
+    "__v": 0
   };
 
   const featuredImages = [
@@ -93,8 +103,8 @@ export default function Home() {
   return (
     <div>
       <HeroSection bgImage={heroSectionImage} />
-      {/* <FeaturedEventSection event={featuredEvent} /> */}
-      <FeaturedEventSection />
+      <FeaturedEventSection event={featuredEvent} />
+      {/* <FeaturedEventSection /> */}
       <FeaturedImagesSection images={featuredImages} />
       <TopPerformersSection performers={featuredPerformers} />
       <FeaturedVideo videoLink={featuredVideo} />
