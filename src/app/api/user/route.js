@@ -4,6 +4,7 @@ import dbConnect from '@/lib/dbConnect';
 import User from '@/lib/models/User';
 import { authOptions } from '../auth/[...nextauth]/route';
 import { v2 as cloudinary } from "cloudinary";
+import bcryptjs from 'bcryptjs';
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -41,7 +42,7 @@ export async function PUT(req) {
     if (name) user.name = name;
     if (email) user.email = email;
     if (phone) user.phone = phone;
-    if (password) user.password = await bcrypt.hash(password, 10);
+    if (password) user.password = await bcryptjs.hash(password, 10);
     if (bio) user.bio = bio; // Assuming bio is sent in the request body
     if (position) user.position = position; // Assuming position is sent in the request body
 

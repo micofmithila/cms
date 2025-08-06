@@ -32,6 +32,7 @@ export default function UserManagementPage() {
   const handleEditClick = (user) => {
     setEditingUser(user._id);
     setFormData({
+      id: user._id,
       name: user.name,
       email: user.email,
       phone: user.phone,
@@ -43,7 +44,7 @@ export default function UserManagementPage() {
   };
 
   const handleUpdate = async () => {
-    const res = await fetch(`/api/users/${editingUser}`, {
+    const res = await fetch(`/api/users`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(formData)
@@ -56,7 +57,11 @@ export default function UserManagementPage() {
 
   const handleDelete = async (id) => {
     if (confirm('Are you sure you want to delete this user?')) {
-      const res = await fetch(`/api/users/${id}`, { method: 'DELETE' });
+      const res = await fetch(`/api/users`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id })
+      });
       if (res.ok) fetchUsers();
     }
   };
@@ -65,6 +70,17 @@ export default function UserManagementPage() {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
+
+  if (users.error == "Unauthorized") {
+    return (
+      <div className="p-6 max-w-7xl mx-auto">
+        <div className="flex flex-col mb-6">
+          <h1 className="text-3xl font-bold text-gray-800">User Management</h1>
+          <p className='mt-2 text-red-500'>You don't have access to manage users. Kindly contact website admin.</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
@@ -79,7 +95,7 @@ export default function UserManagementPage() {
         <p>Loading users...</p>
       ) : (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {users.map(user => (
+          {users && !users.error && users.map(user => (
             <div key={user._id} className="border border-gray-200 rounded-lg p-4 shadow bg-white">
               <div className="flex items-center gap-4">
                 <img src={user.avatar} alt={user.name} className="w-14 h-14 rounded-full object-cover" />
