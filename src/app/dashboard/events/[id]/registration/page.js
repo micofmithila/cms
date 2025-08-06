@@ -2,17 +2,20 @@
 
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
+import LoadingSpinner from '@/components/Ui/LoadingSpinner';
 
 const AdminEventRegistrations = () => {
   const { id: eventId } = useParams();
   const [registrations, setRegistrations] = useState([]);
   const [selectedReg, setSelectedReg] = useState(null); // for modal
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchRegistrations = async () => {
       const res = await fetch(`/api/events/${eventId}/register`);
       const data = await res.json();
       setRegistrations(data);
+      setLoading(false);
     };
 
     fetchRegistrations();
@@ -40,22 +43,24 @@ const AdminEventRegistrations = () => {
     <div className="p-6 max-w-4xl mx-auto">
       <h1 className="text-2xl font-bold mb-6">Event Registrations</h1>
 
-      <table className="w-full text-sm border border-gray-200 shadow-sm rounded overflow-hidden">
+      {loading ? <LoadingSpinner /> : (<table className="w-full text-sm border border-gray-300 shadow rounded">
         <thead className="bg-gray-100">
           <tr>
-            <th className="text-left px-4 py-2">Name</th>
-            <th>Status</th>
-            <th className="text-right px-4 py-2">Action</th>
+            <th className="px-4 py-2 text-left">#</th>
+            <th className="px-4 py-2 text-left">Name</th>
+            <th className="px-4 py-2 text-left">Status</th>
+            <th className="px-4 py-2 text-left">Category</th>
+            <th className="px-4 py-2 text-right">Action</th>
           </tr>
         </thead>
         <tbody>
-          {registrations.map((reg) => (
+          {registrations.map((reg, idx) => (
             <tr key={reg._id} className="border-t">
+              <td className="px-4 py-2">{idx + 1}</td>
               <td className="px-4 py-2">{reg.name}</td>
-              <td className={`font-semibold ${reg.isSelected ? 'text-green-600' : 'text-red-600'}`}>
-                {reg.isSelected ? 'Approved' : 'Not Approved'}
-              </td>
-              <td className="text-right px-4 py-2">
+              <td className="px-4 py-2 text-lg">{reg.isSelected ? '✅' : '❌'}</td>
+              <td className="px-4 py-2">{reg.category}</td>
+              <td className="px-4 py-2 text-right">
                 <button
                   onClick={() => setSelectedReg(reg)}
                   className="text-blue-600 hover:underline"
@@ -66,12 +71,12 @@ const AdminEventRegistrations = () => {
             </tr>
           ))}
         </tbody>
-      </table>
+      </table>)}
 
       {/* Modal */}
       {selectedReg && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white max-w-md w-full p-6 rounded-xl shadow-xl relative">
+          <div className="bg-white max-w-md w-full p-6 rounded-xl shadow-xl relative max-h-[90vh] overflow-y-auto">
             <button
               className="absolute top-2 right-3 text-gray-500 hover:text-gray-800 text-xl"
               onClick={() => setSelectedReg(null)}
@@ -86,10 +91,13 @@ const AdminEventRegistrations = () => {
               <div><strong>Phone:</strong> {selectedReg.phone}</div>
               <div><strong>Category:</strong> {selectedReg.category}</div>
               <div><strong>Age:</strong> {selectedReg.age}</div>
-              <div><strong>Social Link:</strong> <a href={selectedReg.socialLink} className="text-blue-600 underline" target="_blank" rel="noopener noreferrer">{selectedReg.socialLink}</a></div>
-              <div><strong>Content Link:</strong> <a href={selectedReg.contentLink} className="text-blue-600 underline" target="_blank" rel="noopener noreferrer">{selectedReg.contentLink}</a></div>
-              <div><strong>Other Ques:</strong> {selectedReg.otherQues}</div>
+              <div><strong>Address:</strong> {selectedReg.address}</div>
+              <div><strong>Social Link:</strong> <a href={selectedReg.socialLink} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">{selectedReg.socialLink}</a></div>
+              <div><strong>Content Link:</strong> <a href={selectedReg.contentLink} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">{selectedReg.contentLink}</a></div>
+              <div><strong>How they found Mic:</strong> {selectedReg.howKnowAboutMic}</div>
+              <div><strong>Any Questions:</strong> {selectedReg.anyQues}</div>
               <div><strong>Entry Status:</strong> {selectedReg.isSelected ? '✅ Approved' : '❌ Not Approved'}</div>
+              <div><strong>Registered on:</strong> {new Date(selectedReg.createdAt).toLocaleString()}</div>
             </div>
 
             <div className="mt-4 text-right">
@@ -101,11 +109,11 @@ const AdminEventRegistrations = () => {
                 {selectedReg.isSelected ? 'Decline Entry' : 'Approve Entry'}
               </button>
             </div>
-
           </div>
         </div>
       )}
     </div>
+
   );
 };
 
