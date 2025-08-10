@@ -13,7 +13,7 @@ const EventDetails = () => {
   const [contentFile, setContentFile] = useState(null);
   const [fileName, setFileName] = useState('');
   const [loading, setLoading] = useState(true);
-
+  const [selectedCategory, setSelectedCategory] = useState('');
 
   useEffect(() => {
     const fetchEvent = async () => {
@@ -21,23 +21,21 @@ const EventDetails = () => {
         const res = await fetch(`/api/events/${id}`);
         const data = await res.json();
         setEvent(data);
-        setLoading(false)
+        setLoading(false);
       } catch (err) {
         console.error('Failed to fetch event:', err);
-        setLoading(false)
+        setLoading(false);
       }
     };
 
     fetchEvent();
   }, [id]);
 
-  if (!event) return (
-    <>
-      {loading ? <LoadingSpinner /> : (
-        <div className="p-6 text-center">Loading event...</div>
-      )}
-    </>
-  );
+  if (!event) {
+    return loading ? <LoadingSpinner /> : (
+      <div className="p-6 text-center">Loading event...</div>
+    );
+  }
 
   const {
     title,
@@ -53,7 +51,6 @@ const EventDetails = () => {
 
   const handleFormToggle = () => {
     if (!isRegistrationOpen) {
-      // alert('Registration is closed or not started.');
       toast.error('Registration is closed or not started.');
       return;
     }
@@ -68,7 +65,6 @@ const EventDetails = () => {
     }
   };
 
-
   return (
     <div className="max-w-5xl mx-auto px-4 py-8 space-y-6">
       <h1 className="text-3xl font-bold text-center">{title}</h1>
@@ -82,10 +78,8 @@ const EventDetails = () => {
       )}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 bg-gray-50 p-6 rounded-xl shadow-sm text-sm">
-        <div><strong>Date:</strong> {(eventDate
-          ? new Date(event.eventDate).toLocaleDateString()
-          : "To Be Announced")}</div>
-        <div><strong>Time:</strong> {(eventTime || "To Be Announced")}</div>
+        <div><strong>Date:</strong> {eventDate ? new Date(eventDate).toLocaleDateString() : "To Be Announced"}</div>
+        <div><strong>Time:</strong> {eventTime || "To Be Announced"}</div>
         <div><strong>Venue:</strong> {eventVenueAddress}</div>
         <div><strong>Registration Fee:</strong> {registrationFee === 0 ? 'Free' : `₹${registrationFee}`}</div>
         <div>
@@ -130,22 +124,27 @@ const EventDetails = () => {
               <form onSubmit={async (e) => {
                 e.preventDefault();
                 setLoading(true);
-                if (!contentFile) {
-                  toast.error('Please upload your content')
+
+                if (selectedCategory !== 'Audience' && !contentFile) {
+                  toast.error('Please upload your content');
                   setLoading(false);
                   return;
                 }
+
                 const formData = new FormData();
                 formData.append('name', e.target.name.value.trim());
                 formData.append('email', e.target.email.value.trim());
                 formData.append('phone', e.target.phone.value.trim());
-                formData.append('category', e.target.category.value.trim());
+                formData.append('category', selectedCategory);
                 formData.append('age', e.target.age.value.trim());
                 formData.append('address', e.target.address.value.trim());
-                formData.append('socialLink', e.target.socialLink.value.trim());
+                formData.append('socialLink', e.target.socialLink.value.trim())
                 formData.append('howKnowAboutMic', e.target.howKnowAboutMic.value.trim());
                 formData.append('anyQues', e.target.anyQues.value.trim());
-                formData.append('contentFile', contentFile);
+
+                if (selectedCategory !== 'Audience') {
+                  formData.append('contentFile', contentFile);
+                }
 
                 try {
                   const res = await fetch(`/api/events/${id}/register`, {
@@ -156,14 +155,12 @@ const EventDetails = () => {
                   const data = await res.json();
                   if (!res.ok) throw new Error(data.error || 'Registration failed');
 
-                  setLoading(false)
-                  // alert('Successfully registered!');
-                  toast.success('Successfully registered!')
+                  toast.success('Successfully registered!');
                   setShowForm(false);
                 } catch (err) {
-                  // alert(err.message);
-                  toast.error(err.message)
-                  setLoading(false)
+                  toast.error(err.message);
+                } finally {
+                  setLoading(false);
                 }
               }}
                 className="space-y-4"
@@ -191,42 +188,49 @@ const EventDetails = () => {
                   { name: 'address', label: 'Address', type: 'text' },
                   { name: 'socialLink', label: 'Social Link (Instagram, YouTube)', type: 'url' },
                   { name: 'howKnowAboutMic', label: 'How did you hear about Mic of Mithila?', type: 'text' }
-                ].map((field) => (
-                  <div key={field.name}>
-                    <label htmlFor={field.name} className="block text-sm font-medium mb-1">
-                      {field.label} *
-                    </label>
-                    {field.type === 'select' ? (
-                      <select
-                        id={field.name}
-                        name={field.name}
-                        required
-                        className="w-full border border-gray-300 rounded px-3 py-2 bg-white"
+                ]
+                  .filter(field => field.name !== 'contentFile') // exclude contentFile from loop
+                  .map((field) => (
+                    <div key={field.name}>
+                      <label
+                        htmlFor={field.name}
+                        className="block text-sm font-medium mb-1"
                       >
-                        <option value="">Select a category</option>
-                        {field.options.map((option) => (
-                          <option key={option} value={option}>
-                            {option}
-                          </option>
-                        ))}
-                      </select>
-                    ) : (
-                      <input
-                        type={field.type}
-                        id={field.name}
-                        name={field.name}
-                        required
-                        className="w-full border border-gray-300 rounded px-3 py-2"
-                      />
-                    )}
-                  </div>
-                ))}
+                        {field.label}
+                        {field.name !== 'socialLink' && ' *'}
+                      </label>
 
+                      {field.type === 'select' ? (
+                        <select
+                          id={field.name}
+                          name={field.name}
+                          required
+                          onChange={(e) => setSelectedCategory(e.target.value)}
+                          className="w-full border border-gray-300 rounded px-3 py-2 bg-white"
+                        >
+                          <option value="">Select a category</option>
+                          {field.options.map((option) => (
+                            <option key={option} value={option}>
+                              {option}
+                            </option>
+                          ))}
+                        </select>
+                      ) : (
+                        <input
+                          type={field.type}
+                          id={field.name}
+                          name={field.name}
+                          required={field.name !== 'socialLink'}
+                          className="w-full border border-gray-300 rounded px-3 py-2"
+                        />
+                      )}
+                    </div>
+                  ))}
 
                 {/* Optional Question */}
                 <div>
                   <label htmlFor="anyQues" className="block text-sm font-medium mb-1">
-                    Any Question (optional)
+                    Any Question?
                   </label>
                   <textarea
                     id="anyQues"
@@ -236,22 +240,24 @@ const EventDetails = () => {
                   />
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium mb-1">
-                    Upload Your Content (script) *
-                  </label>
-                  <input
-                    type="file"
-                    accept="image/*,video/*,audio/*,application/pdf"
-                    required
-                    onChange={handleFileChange}
-                    className="w-full border border-gray-300 rounded px-3 py-2"
-                  />
-                  {fileName && (
-                    <p className="text-sm text-gray-500 mt-1">Selected: {fileName}</p>
-                  )}
-                </div>
-
+                {/* Upload File (Required only if not Audience) */}
+                {selectedCategory !== 'Audience' && (
+                  <div>
+                    <label className="block text-sm font-medium mb-1">
+                      Upload Your Content (script) *
+                    </label>
+                    <input
+                      type="file"
+                      accept="image/*,video/*,audio/*,application/pdf"
+                      onChange={handleFileChange}
+                      required
+                      className="w-full border border-gray-300 rounded px-3 py-2"
+                    />
+                    {fileName && (
+                      <p className="text-sm text-gray-500 mt-1">Selected: {fileName}</p>
+                    )}
+                  </div>
+                )}
 
                 <button
                   type="submit"

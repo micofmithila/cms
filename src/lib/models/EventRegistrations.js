@@ -10,10 +10,10 @@ const EventRegistrationsSchema = new mongoose.Schema({
   category: { type: String, required: true },
   age: { type: String, required: true },
   address: { type: String, required: true },
-  socialLink: { type: String, required: true },
-  howKnowAboutMic: { type: String, required: true },
+  socialLink: { type: String, default: null },
+  howKnowAboutMic: { type: String },
   anyQues: { type: String },
-  contentLink: { type: String, required: true },
+  contentLink: { type: String, default: null },
   createdAt: { type: Date, default: Date.now }
 });
 

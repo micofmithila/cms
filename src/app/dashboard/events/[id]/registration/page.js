@@ -92,10 +92,10 @@ const AdminEventRegistrations = () => {
               <div><strong>Category:</strong> {selectedReg.category}</div>
               <div><strong>Age:</strong> {selectedReg.age}</div>
               <div><strong>Address:</strong> {selectedReg.address}</div>
-              <div><strong>Social Link:</strong> <a href={selectedReg.socialLink} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">{selectedReg.socialLink}</a></div>
-              <div><strong>Content Link:</strong> <a href={selectedReg.contentLink} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">{selectedReg.contentLink}</a></div>
-              <div><strong>How they found Mic:</strong> {selectedReg.howKnowAboutMic}</div>
-              <div><strong>Any Questions:</strong> {selectedReg.anyQues}</div>
+              <div><strong>Social Link:</strong> <a href={selectedReg.socialLink} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">{selectedReg.socialLink || <span className='text-red-500'>Not provided</span>}</a></div>
+              <div><strong>Content Link:</strong> <a href={selectedReg.contentLink} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">{selectedReg.contentLink ||  <span className='text-red-500'>Not provided</span>}</a></div>
+              <div><strong>How they know MOM:</strong> {selectedReg.howKnowAboutMic || <span className='text-red-500'>Not provided</span>}</div>
+              <div><strong>Any Questions:</strong> {selectedReg.anyQues || <span className='text-red-500'>Not provided</span>}</div>
               <div><strong>Entry Status:</strong> {selectedReg.isSelected ? '✅ Approved' : '❌ Not Approved'}</div>
               <div><strong>Registered on:</strong> {new Date(selectedReg.createdAt).toLocaleString()}</div>
             </div>
