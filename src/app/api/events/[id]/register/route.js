@@ -20,6 +20,7 @@ export async function POST(req, { params }) {
   const data = await req.formData();
 
   try {
+    // 1. Validate event
     const event = await Events.findById(eventId);
     if (!event) {
       return NextResponse.json({ error: 'Event not found' }, { status: 404 });
@@ -29,73 +30,91 @@ export async function POST(req, { params }) {
       return NextResponse.json({ error: 'Registration is closed or not started' }, { status: 400 });
     }
 
-    const name = data.get('name')?.trim();
-    const email = data.get('email')?.trim();
-    const phone = data.get('phone')?.trim();
-    const category = data.get('category')?.trim();
-    const age = data.get('age')?.trim();
-    const address = data.get('address')?.trim();
-    const socialLink = data.get('socialLink')?.trim();
-    const howKnowAboutMic = data.get('howKnowAboutMic')?.trim();
-    const anyQues = data.get('anyQues')?.trim();
+    // 2. Extract fields
+    const fields = {
+      name: data.get('name')?.trim(),
+      email: data.get('email')?.trim(),
+      phone: data.get('phone')?.trim(),
+      category: data.get('category')?.trim(),
+      age: data.get('age')?.trim(),
+      address: data.get('address')?.trim(),
+      socialLink: data.get('socialLink')?.trim(),
+      howKnowAboutMic: data.get('howKnowAboutMic')?.trim(),
+      anyQues: data.get('anyQues')?.trim() || '',
+    };
+
     const contentFile = data.get('contentFile');
 
-    if (
-      !name ||
-      !email ||
-      !phone ||
-      !category ||
-      !age ||
-      !address ||
-      !socialLink ||
-      !howKnowAboutMic ||
-      !contentFile
-    ) {
-      return NextResponse.json({ error: 'All required fields must be filled' }, { status: 400 });
+    // 3. Required fields check
+    // Validate each field individually
+    if (!fields.name) {
+      return NextResponse.json({ error: 'Name is required' }, { status: 400 });
+    }
+    if (!fields.email) {
+      return NextResponse.json({ error: 'Email is required' }, { status: 400 });
+    }
+    if (!fields.phone) {
+      return NextResponse.json({ error: 'Phone is required' }, { status: 400 });
+    }
+    if (!fields.category) {
+      return NextResponse.json({ error: 'Category is required' }, { status: 400 });
+    }
+    if (!fields.age) {
+      return NextResponse.json({ error: 'Age is required' }, { status: 400 });
+    }
+    if (!fields.address) {
+      return NextResponse.json({ error: 'Address is required' }, { status: 400 });
+    }
+    if (!fields.howKnowAboutMic) {
+      return NextResponse.json({ error: 'How you know about Mic is required' }, { status: 400 });
+    }
+    // Content file check only if category is NOT Audience
+    if (fields.category !== 'Audience' && !contentFile) {
+      return NextResponse.json({ error: 'Content file is required' }, { status: 400 });
     }
 
-    // Validate file size ≤ 25MB
-    if (contentFile.size > 25 * 1024 * 1024) {
-      return NextResponse.json({ error: 'Content file exceeds 25MB limit' }, { status: 400 });
+    let uploadResult = null;
+
+    // Only validate & upload file if category is NOT "Audience" and a file is provided
+    if (fields.category !== 'Audience' && contentFile) {
+      // 4. File size validation (≤ 25MB)
+      if (contentFile.size > 25 * 1024 * 1024) {
+        return NextResponse.json({ error: 'Content file exceeds 25MB limit' }, { status: 400 });
+      }
+
+      // 5. Upload to Cloudinary
+      const buffer = Buffer.from(await contentFile.arrayBuffer());
+
+      const uploadToCloudinary = () =>
+        new Promise((resolve, reject) => {
+          const stream = cloudinary.uploader.upload_stream(
+            { folder: 'micofmithila/registerationContents', resource_type: 'auto' },
+            (err, result) => (err ? reject(err) : resolve(result))
+          );
+          stream.end(buffer);
+        });
+
+      uploadResult = await uploadToCloudinary();
     }
 
-    const buffer = Buffer.from(await contentFile.arrayBuffer());
 
-    const uploadToCloudinary = () =>
-      new Promise((resolve, reject) => {
-        const stream = cloudinary.uploader.upload_stream(
-          { folder: 'micofmithila/registerationContents', resource_type: 'auto' },
-          (err, result) => {
-            if (err) reject(err);
-            else resolve(result);
-          }
-        );
-        stream.end(buffer);
-      });
-
-    const result = await uploadToCloudinary();
-
+    // 6. Save registration
     const registration = await EventRegistrations.create({
       eventId: event._id,
       date: new Date(),
-      name,
-      email,
-      phone,
-      category,
-      age,
-      address,
-      socialLink,
-      howKnowAboutMic,
-      anyQues: anyQues || '',
-      contentLink: result.secure_url
+      ...fields,
+      contentLink: uploadResult ? uploadResult.secure_url : null
     });
 
+    // 7. Success response
     return NextResponse.json({
       message: 'Registration successful',
-      registrationId: registration._id
+      registrationId: registration._id,
     });
+
   } catch (err) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    console.error(err);
+    return NextResponse.json({ error: err.message || 'Internal Server Error' }, { status: 500 });
   }
 }
 
