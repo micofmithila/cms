@@ -174,14 +174,14 @@ const EventDetails = () => {
                     label: 'Category',
                     type: 'select',
                     options: [
-                      'Poetry',
-                      'Storytelling',
-                      'Singing',
-                      'Rapsong',
-                      'Beatboxing',
-                      'Mimicry',
-                      'Stand-up Comedy',
-                      'Audience'
+                      // 'Poetry',
+                      // 'Storytelling',
+                      // 'Singing',
+                      // 'Rapsong',
+                      // 'Beatboxing',
+                      // 'Mimicry',
+                      // 'Stand-up Comedy',
+                      'Audience (Performer Registrations Closed)'
                     ]
                   },
                   { name: 'age', label: 'Age', type: 'number' },
