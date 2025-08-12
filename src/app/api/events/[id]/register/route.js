@@ -147,7 +147,7 @@ export async function PUT(req, { params }) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const { id: eventId } = params;
+  const { id: eventId } = await params;
   const body = await req.json();
 
   const { registrationId, isApproved } = body;
@@ -157,7 +157,6 @@ export async function PUT(req, { params }) {
   }
 
   try {
-    // Add admin authentication check here if needed
     const updated = await EventRegistrations.findOneAndUpdate(
       { _id: registrationId, eventId },
       { isApproved },
