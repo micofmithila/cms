@@ -171,7 +171,7 @@ const EventDetails = () => {
                   { name: 'phone', label: 'Phone Number', type: 'tel' },
                   {
                     name: 'category',
-                    label: 'Category',
+                    label: 'Category (Performer Registrations Closed)',
                     type: 'select',
                     options: [
                       // 'Poetry',
@@ -181,7 +181,7 @@ const EventDetails = () => {
                       // 'Beatboxing',
                       // 'Mimicry',
                       // 'Stand-up Comedy',
-                      'Audience (Performer Registrations Closed)'
+                      'Audience'
                     ]
                   },
                   { name: 'age', label: 'Age', type: 'number' },
