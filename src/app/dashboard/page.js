@@ -2,6 +2,7 @@
 import Link from 'next/link';
 import React from 'react';
 import { FiGrid, FiImage, FiMail, FiUser } from 'react-icons/fi';
+import { MdGroups3 } from "react-icons/md";
 import { FaUsersCog } from "react-icons/fa";
 
 export default function Dashboard() {
@@ -20,6 +21,11 @@ export default function Dashboard() {
       name: 'Contact Form Submissions',
       href: '/dashboard/contact',
       icon: <FiMail className="text-purple-600 text-2xl" />,
+    },
+    {
+      name: 'Manage Crew Members',
+      href: '/dashboard/crew',
+      icon: <MdGroups3 className="text-purple-600 text-2xl" />,
     },
     {
       name: 'Manage Account',
