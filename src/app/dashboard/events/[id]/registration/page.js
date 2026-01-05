@@ -108,7 +108,7 @@ const AdminEventRegistrations = () => {
             setSearchName(e.target.value);
             setCurrentPage(1);
           }}
-          className="border px-3 py-2 rounded w-72 focus:outline-none focus:ring-2 focus:ring-purple-500"
+          className="border px-3 py-2 rounded w-72"
         />
 
         {/* Status Filter */}
