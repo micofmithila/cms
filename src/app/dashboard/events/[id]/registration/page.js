@@ -13,6 +13,8 @@ const AdminEventRegistrations = () => {
   // Filters
   const [filterCategory, setFilterCategory] = useState('All');
   const [filterStatus, setFilterStatus] = useState('All');
+  const [searchName, setSearchName] = useState('');
+
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
@@ -51,15 +53,19 @@ const AdminEventRegistrations = () => {
   const filteredData = useMemo(() => {
     return registrations.filter((reg) => {
       const categoryMatch = filterCategory === 'All' ||
-      (filterCategory === 'Performers' && reg.category !== 'Audience') ||
-      reg.category === filterCategory;
+        (filterCategory === 'Performers' && reg.category !== 'Audience') ||
+        reg.category === filterCategory;
       const statusMatch =
         filterStatus === 'All' ||
         (filterStatus === 'Approved' && reg.isApproved) ||
         (filterStatus === 'Not Approved' && !reg.isApproved);
-      return categoryMatch && statusMatch;
+
+      const nameMatch =
+        reg.name?.toLowerCase().includes(searchName.toLowerCase());
+
+      return categoryMatch && statusMatch && nameMatch;
     });
-  }, [registrations, filterCategory, filterStatus]);
+  }, [registrations, filterCategory, filterStatus, searchName]);
 
   // Pagination logic
   const totalPages = Math.ceil(filteredData.length / pageSize);
@@ -79,7 +85,8 @@ const AdminEventRegistrations = () => {
       <h1 className="text-2xl font-bold mb-6">Event Registrations</h1>
 
       {/* Filters */}
-      <div className="flex flex-wrap gap-4 mb-4">
+      <div className="flex flex-wrap gap-4 mb-4 justify-between">
+        {/* Category Filter */}
         <select
           value={filterCategory}
           onChange={(e) => { setFilterCategory(e.target.value); setCurrentPage(1); }}
@@ -92,6 +99,19 @@ const AdminEventRegistrations = () => {
           ))}
         </select>
 
+        {/* 🔍 Name Search */}
+        <input
+          type="text"
+          placeholder="Search by name..."
+          value={searchName}
+          onChange={(e) => {
+            setSearchName(e.target.value);
+            setCurrentPage(1);
+          }}
+          className="border px-3 py-2 rounded w-72 focus:outline-none focus:ring-2 focus:ring-purple-500"
+        />
+
+        {/* Status Filter */}
         <select
           value={filterStatus}
           onChange={(e) => { setFilterStatus(e.target.value); setCurrentPage(1); }}
