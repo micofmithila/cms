@@ -85,7 +85,7 @@ const AdminEventRegistrations = () => {
       <h1 className="text-2xl font-bold mb-6">Event Registrations</h1>
 
       {/* Filters */}
-      <div className="flex flex-wrap gap-4 mb-4 justify-between">
+      <div className="flex flex-wrap gap-4 mb-4 mx-2 justify-between">
         {/* Category Filter */}
         <select
           value={filterCategory}
@@ -99,18 +99,6 @@ const AdminEventRegistrations = () => {
           ))}
         </select>
 
-        {/* 🔍 Name Search */}
-        <input
-          type="text"
-          placeholder="Search by name..."
-          value={searchName}
-          onChange={(e) => {
-            setSearchName(e.target.value);
-            setCurrentPage(1);
-          }}
-          className="border px-3 py-2 rounded w-72"
-        />
-
         {/* Status Filter */}
         <select
           value={filterStatus}
@@ -121,37 +109,71 @@ const AdminEventRegistrations = () => {
           <option value="Approved">Approved</option>
           <option value="Not Approved">Not Approved</option>
         </select>
+
+      </div>
+      {/* 🔍 Name Search */}
+      <div className="flex flex-wrap gap-4 mb-4 mx-2">
+        <input
+          type="text"
+          placeholder="Search by name..."
+          value={searchName}
+          onChange={(e) => {
+            setSearchName(e.target.value);
+            setCurrentPage(1);
+          }}
+          className="border px-3 py-2 rounded w-full"
+        />
       </div>
 
       {/* Table */}
       {loading ? (
         <LoadingSpinner />
       ) : (
-        <table className="w-full text-sm border border-gray-300 shadow rounded">
-          <thead className="bg-gray-100">
-            <tr>
-              <th className="px-4 py-2 text-left">#</th>
-              <th className="px-4 py-2 text-left">Name</th>
-              <th className="px-4 py-2 text-left">Status</th>
-              <th className="px-4 py-2 text-left">Category</th>
-            </tr>
-          </thead>
-          <tbody>
-            {paginatedData.map((reg, idx) => (
-              <tr key={reg._id} className="border-t">
-                <td className="px-4 py-2">{(currentPage - 1) * pageSize + idx + 1}</td>
-                <td
-                  className="px-4 py-2 text-blue-600 hover:underline cursor-pointer"
-                  onClick={() => setSelectedReg(reg)}
-                >
-                  {reg.name}
-                </td>
-                <td className="px-4 py-2 text-lg">{reg.isApproved ? '✅' : '❌'}</td>
-                <td className="px-4 py-2">{reg.category}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <>
+          <div className="w-full border border-gray-300 rounded overflow-hidden">
+            <table className="w-full text-xs sm:text-sm table-fixed">
+              <thead className="bg-gray-100">
+                <tr>
+                  <th className="w-[8%] px-1 py-2 text-left">#</th>
+                  <th className="w-[47%] px-2 py-2 text-left">Name</th>
+                  <th className="w-[30%] px-2 py-2 text-left">Category</th>
+                  <th className="w-[15%] px-1 py-2 text-center">Status</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {paginatedData.map((reg, idx) => (
+                  <tr key={reg._id} className="border-t">
+                    {/* Serial Number */}
+                    <td className="px-1 py-2 text-gray-500">
+                      {(currentPage - 1) * pageSize + idx + 1}
+                    </td>
+
+                    {/* Name */}
+                    <td
+                      className="px-2 py-2 text-blue-600 truncate cursor-pointer hover:underline"
+                      onClick={() => setSelectedReg(reg)}
+                      title={reg.name}
+                    >
+                      {reg.name}
+                    </td>
+
+                    {/* Category */}
+                    <td className="px-2 py-2 truncate" title={reg.category}>
+                      {reg.category}
+                    </td>
+
+                    {/* Status */}
+                    <td className="px-1 py-2 text-center">
+                      {reg.isApproved ? '✅' : '❌'}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
+
       )}
 
       {/* Pagination controls */}
