@@ -3,6 +3,8 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useParams } from 'next/navigation';
 import LoadingSpinner from '@/components/Ui/LoadingSpinner';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 const AdminEventRegistrations = () => {
   const { id: eventId } = useParams();
@@ -79,6 +81,173 @@ const AdminEventRegistrations = () => {
     });
     return counts;
   }, [registrations]);
+
+  const getDateTimeString = () => {
+    const now = new Date();
+    const pad = (n) => n.toString().padStart(2, '0');
+
+    return `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}_` +
+      `${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
+  };
+
+  const formatDateReadable = () => {
+    const now = new Date();
+    return now.toLocaleDateString('en-GB', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+      weekday: 'long',
+    });
+  };
+
+  const formatTimeReadable = () => {
+    return new Date().toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+    });
+  };
+
+
+  const downloadPDF = () => {
+    if (!filteredData.length) return;
+
+    const doc = new jsPDF();
+
+    const category =
+      filterCategory === 'All'
+        ? 'All'
+        : filterCategory === 'Performers'
+          ? 'Performers'
+          : filterCategory;
+
+    const status =
+      filterStatus === 'All'
+        ? 'All'
+        : filterStatus === 'Approved'
+          ? 'Approved'
+          : 'NotApproved';
+
+    const fileName = `MOM_${category}_${status}_List_${getDateTimeString()}.pdf`;
+
+    // Title
+    doc.setFontSize(14);
+    doc.text(`Mic Of Mithila – Registration List – ${category}`, 14, 15);
+
+    // Date & Time line
+    doc.setFontSize(10);
+
+    const dateText = formatDateReadable();
+    const timeText = formatTimeReadable();
+
+    // Left aligned date
+    doc.text(dateText, 14, 22);
+
+    // Right aligned time
+    doc.text(
+      timeText,
+      doc.internal.pageSize.getWidth() - 14,
+      22,
+      { align: 'right' }
+    );
+
+
+    const tableBody = filteredData.map((reg, idx) => [
+      idx + 1,
+      reg.name,
+      reg.category,
+      reg.isApproved ? 'Y' : 'N',
+      reg.contentLink ? 'View Content' : 'No Content',
+      reg.socialLink ? 'Open Social' : 'No Social',
+    ]);
+    // TODO: Hindi font support for PDF
+
+
+
+    autoTable(doc,
+      {
+        head: [[
+          '#',
+          'Name',
+          'Category',
+          'Status',
+          'Content',
+          'Social'
+        ]],
+        body: tableBody,
+        startY: 28,
+        styles: {
+          fontSize: 9,
+          valign: 'middle',
+        },
+
+        // 1️⃣ REMOVE autoTable text for link columns
+        didParseCell(data) {
+          const reg = filteredData[data.row.index];
+          if (!reg) return;
+
+          if (data.column.index === 4 && reg.contentLink) {
+            data.cell.text = [''];
+          }
+
+          if (data.column.index === 5 && reg.socialLink) {
+            data.cell.text = [''];
+          }
+        },
+
+        // 2️⃣ DRAW PERFECTLY CENTERED CLICKABLE LINKS
+        didDrawCell(data) {
+          // 🚫 Prevent header/footer duplication
+          if (data.section !== 'body') return;
+
+          const reg = filteredData[data.row.index];
+          if (!reg) return;
+
+          const colIndex = data.column.index;
+
+          let text = '';
+          let link = '';
+
+          if (colIndex === 4 && reg.contentLink) {
+            text = 'View Content';
+            link = reg.contentLink;
+          }
+
+          if (colIndex === 5 && reg.socialLink) {
+            text = 'Open Social';
+            link = reg.socialLink;
+          }
+
+          if (!text) return;
+
+          const fontSize = 9;
+          doc.setFontSize(fontSize);
+          doc.setTextColor(0, 0, 255);
+
+          const textWidth = doc.getTextWidth(text);
+
+          const x =
+            data.cell.x +
+            (data.cell.width - textWidth) / 2 -
+            0.8;
+
+          const y =
+            data.cell.y +
+            data.cell.height / 2 +
+            fontSize / 2 -
+            4;
+
+          doc.textWithLink(text, x, y, { url: link });
+
+          doc.setTextColor(0, 0, 0);
+        }
+
+
+      }
+    );
+
+    doc.save(fileName);
+  };
 
   return (
     <div className="py-6 px-3 max-w-4xl mx-auto">
@@ -210,6 +379,16 @@ const AdminEventRegistrations = () => {
           </button>
         </div>
       )}
+
+      <div className="flex justify-end items-center mt-6 mx-4">
+        <button
+          onClick={downloadPDF}
+          className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 transition"
+        >
+          Download PDF
+        </button>
+      </div>
+
 
       {/* Summary */}
       {!loading && (
