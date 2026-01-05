@@ -50,7 +50,9 @@ const AdminEventRegistrations = () => {
   // Filtered Data
   const filteredData = useMemo(() => {
     return registrations.filter((reg) => {
-      const categoryMatch = filterCategory === 'All' || reg.category === filterCategory;
+      const categoryMatch = filterCategory === 'All' ||
+      (filterCategory === 'Performers' && reg.category !== 'Audience') ||
+      reg.category === filterCategory;
       const statusMatch =
         filterStatus === 'All' ||
         (filterStatus === 'Approved' && reg.isApproved) ||
@@ -84,6 +86,7 @@ const AdminEventRegistrations = () => {
           className="border px-3 py-2 rounded"
         >
           <option value="All">All Categories</option>
+          <option value="Performers">Performers Only</option>
           {[...new Set(registrations.map((r) => r.category))].map((cat) => (
             <option key={cat} value={cat}>{cat}</option>
           ))}
