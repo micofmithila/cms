@@ -171,16 +171,16 @@ const EventDetails = () => {
                   { name: 'phone', label: 'Phone Number', type: 'tel' },
                   {
                     name: 'category',
-                    label: 'Category',
+                    label: 'Category (Performer Registration Closed)',
                     type: 'select',
                     options: [
-                      'Poetry',
-                      'Storytelling',
-                      'Singing',
-                      'Rapsong',
-                      'Beatboxing',
-                      'Mimicry',
-                      'Stand-up Comedy',
+                      // 'Poetry',
+                      // 'Storytelling',
+                      // 'Singing',
+                      // 'Rapsong',
+                      // 'Beatboxing',
+                      // 'Mimicry',
+                      // 'Stand-up Comedy',
                       'Audience'
                     ]
                   },
