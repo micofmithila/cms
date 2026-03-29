@@ -68,6 +68,24 @@ export async function POST(req, { params }) {
     if (!fields.howKnowAboutMic) {
       return NextResponse.json({ error: 'How you know about Mic is required' }, { status: 400 });
     }
+
+    // 4. Duplicate registration check
+    const existing = await EventRegistrations.findOne({
+      eventId: event._id,
+      $or: [
+        { email: fields.email },
+        { phone: fields.phone },
+      ],
+    });
+
+    if (existing) {
+      return NextResponse.json(
+        { error: 'You have already registered for this event with this email or phone number.' },
+        { status: 409 }
+      );
+    }
+
+    
     // Content file check only if category is NOT Audience
     if (fields.category !== 'Audience' && !contentFile) {
       return NextResponse.json({ error: 'Content file is required' }, { status: 400 });

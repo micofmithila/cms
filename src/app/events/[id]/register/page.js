@@ -118,7 +118,12 @@ const RegisterPage = () => {
           } else {
             try {
               const err = JSON.parse(xhr.responseText);
-              reject(new Error(err.error || 'Registration failed'));
+              // 409 = already registered
+              if (xhr.status === 409) {
+                reject(new Error(err.error));
+              } else {
+                reject(new Error(err.error || 'Registration failed'));
+              }
             } catch {
               reject(new Error('Registration failed'));
             }
@@ -159,6 +164,7 @@ const RegisterPage = () => {
     } catch (err) {
       toast.error(err.message);
       setProgress(0);
+      setSubmitting(false);
     } finally {
       setSubmitting(false);
     }
