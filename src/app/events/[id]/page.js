@@ -1,19 +1,16 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import DOMPurify from 'dompurify';
 import LoadingSpinner from '@/components/Ui/LoadingSpinner';
 import toast from 'react-hot-toast';
 
 const EventDetails = () => {
   const { id } = useParams();
+  const router = useRouter();
   const [event, setEvent] = useState(null);
-  const [showForm, setShowForm] = useState(false);
-  const [contentFile, setContentFile] = useState(null);
-  const [fileName, setFileName] = useState('');
   const [loading, setLoading] = useState(true);
-  const [selectedCategory, setSelectedCategory] = useState('');
 
   useEffect(() => {
     const fetchEvent = async () => {
@@ -21,19 +18,26 @@ const EventDetails = () => {
         const res = await fetch(`/api/events/${id}`);
         const data = await res.json();
         setEvent(data);
-        setLoading(false);
       } catch (err) {
         console.error('Failed to fetch event:', err);
+      } finally {
         setLoading(false);
       }
     };
-
     fetchEvent();
   }, [id]);
 
+  if (loading) return <LoadingSpinner />;
+
   if (!event) {
-    return loading ? <LoadingSpinner /> : (
-      <div className="p-6 text-center">Loading event...</div>
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center space-y-3">
+          <p className="text-5xl">🎤</p>
+          <p className="text-xl font-semibold text-gray-700">Event not found</p>
+          <p className="text-gray-400 text-sm">The event you're looking for doesn't exist or has been removed.</p>
+        </div>
+      </div>
     );
   }
 
@@ -44,232 +48,201 @@ const EventDetails = () => {
     eventTime,
     eventVenueAddress,
     registrationFee,
+    registrationOpeningDate,
+    registrationClosingDate,
     status,
     isRegistrationOpen,
     desc,
+    theme,
+    chiefGuests,
   } = event;
 
-  const handleFormToggle = () => {
+  const handleRegisterClick = () => {
     if (!isRegistrationOpen) {
       toast.error('Registration is closed or not started.');
       return;
     }
-    setShowForm((prev) => !prev);
+    router.push(`/events/${id}/register`);
   };
 
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setContentFile(file);
-      setFileName(file.name);
-    }
+  const statusConfig = {
+    upcoming: { label: 'Upcoming', color: 'bg-green-100 text-green-700 border-green-200' },
+    completed: { label: 'Completed', color: 'bg-gray-100 text-gray-600 border-gray-200' },
+    cancelled: { label: 'Cancelled', color: 'bg-red-100 text-red-600 border-red-200' },
+    draft: { label: 'Draft', color: 'bg-yellow-100 text-yellow-700 border-yellow-200' },
   };
+
+  const currentStatus = statusConfig[status] || statusConfig.draft;
+
+  const formattedEventDate = eventDate
+    ? new Date(eventDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric', weekday: 'long' })
+    : null;
+
+  const formattedRegOpen = registrationOpeningDate
+    ? new Date(registrationOpeningDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
+    : null;
+
+  const formattedRegClose = registrationClosingDate
+    ? new Date(registrationClosingDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
+    : null;
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-8 space-y-6">
-      <h1 className="text-3xl font-bold text-center">{title}</h1>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50">
 
-      {posterUrl && (
-        <img
-          src={posterUrl}
-          alt={title}
-          className="max-w-full max-h-[600px] object-contain rounded-xl shadow-md mx-auto"
-        />
-      )}
+      {/* Hero Section */}
+      <div className="relative w-full bg-gray-900 overflow-hidden flex justify-center">
+        {posterUrl && (
+          <img
+            src={posterUrl}
+            alt={title}
+            className="max-h-[520px] max-w-full object-contain opacity-40"
+          />
+        )}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 bg-gray-50 p-6 rounded-xl shadow-sm text-sm">
-        <div><strong>Date:</strong> {eventDate ? new Date(eventDate).toLocaleDateString() : "To Be Announced"}</div>
-        <div><strong>Time:</strong> {eventTime || "To Be Announced"}</div>
-        <div><strong>Venue:</strong> {eventVenueAddress}</div>
-        <div><strong>Registration Fee:</strong> {registrationFee === 0 ? 'Free' : `₹${registrationFee}`}</div>
-        <div>
-          <strong>Status:</strong>{' '}
-          <span className={`font-semibold ${status === 'upcoming' ? 'text-green-600' : status === 'cancelled' ? 'text-red-600' : status === 'completed' ? 'text-gray-600' : 'text-yellow-500'}`}>
-            {status}
-          </span>
-        </div>
-        <div>
-          <strong>Registration:</strong>{' '}
-          {isRegistrationOpen ? (
-            <span className="text-green-600 font-semibold">Open</span>
-          ) : (
-            <span className="text-red-600 font-semibold">Closed</span>
+        {/* Gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/60 to-transparent" />
+
+        {/* Hero content */}
+        <div className="absolute bottom-0 left-0 right-0 px-6 pb-10 pt-20 max-w-5xl mx-auto">
+          <div className="flex flex-wrap items-center gap-3 mb-4">
+            <span className={`text-xs font-semibold px-3 py-1 rounded-full border ${currentStatus.color}`}>
+              {currentStatus.label}
+            </span>
+            {isRegistrationOpen && (
+              <span className="text-xs font-semibold px-3 py-1 rounded-full border bg-blue-100 text-blue-700 border-blue-200 animate-pulse">
+                Registration Open
+              </span>
+            )}
+            {theme && (
+              <span className="text-xs font-semibold px-3 py-1 rounded-full border bg-purple-100 text-purple-700 border-purple-200">
+                🎨 {theme!='NA' ? theme : "No Theme"}
+              </span>
+            )}
+          </div>
+
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white leading-tight drop-shadow-md">
+            {title}
+          </h1>
+
+          {formattedEventDate && (
+            <p className="text-blue-200 mt-3 text-base font-medium">📅 {formattedEventDate}</p>
           )}
         </div>
       </div>
 
-      <div className="bg-white p-6 rounded-xl shadow-sm">
-        <h2 className="text-xl font-semibold mb-4">Description</h2>
-        <div
-          className="prose max-w-none prose-headings:scroll-mt-20 prose-h1:text-2xl prose-h2:text-xl prose-p:text-base"
-          dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(desc || '') }}
-        />
-      </div>
+      {/* Main Content */}
+      <div className="max-w-5xl mx-auto px-4 py-10 space-y-8">
 
-      {/* Register Button */}
-      <div className="text-center">
-        <button
-          onClick={handleFormToggle}
-          className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition"
-        >
-          Registration Form
-        </button>
-      </div>
-
-      {isRegistrationOpen && (
-        <>
-          {loading ? (<LoadingSpinner />) : (showForm && (
-            <div className='bg-white p-6 mt-6 rounded-xl shadow-sm'>
-              <h2 className="text-xl font-semibold mb-4">Register for this Event</h2>
-              <form onSubmit={async (e) => {
-                e.preventDefault();
-                setLoading(true);
-
-                if (selectedCategory !== 'Audience' && !contentFile) {
-                  toast.error('Please upload your content');
-                  setLoading(false);
-                  return;
-                }
-
-                const formData = new FormData();
-                formData.append('name', e.target.name.value.trim());
-                formData.append('email', e.target.email.value.trim());
-                formData.append('phone', e.target.phone.value.trim());
-                formData.append('category', selectedCategory);
-                formData.append('age', e.target.age.value.trim());
-                formData.append('address', e.target.address.value.trim());
-                formData.append('socialLink', e.target.socialLink.value.trim())
-                formData.append('howKnowAboutMic', e.target.howKnowAboutMic.value.trim());
-                formData.append('anyQues', e.target.anyQues.value.trim());
-
-                if (selectedCategory !== 'Audience') {
-                  formData.append('contentFile', contentFile);
-                }
-
-                try {
-                  const res = await fetch(`/api/events/${id}/register`, {
-                    method: 'POST',
-                    body: formData
-                  });
-
-                  const data = await res.json();
-                  if (!res.ok) throw new Error(data.error || 'Registration failed');
-
-                  toast.success('Successfully registered!');
-                  setShowForm(false);
-                } catch (err) {
-                  toast.error(err.message);
-                } finally {
-                  setLoading(false);
-                }
-              }}
-                className="space-y-4"
-              >
-                {[
-                  { name: 'name', label: 'Full Name', type: 'text' },
-                  { name: 'email', label: 'Email', type: 'email' },
-                  { name: 'phone', label: 'Phone Number', type: 'tel' },
-                  {
-                    name: 'category',
-                    label: 'Category (Performer Registration Closed)',
-                    type: 'select',
-                    options: [
-                      // 'Poetry',
-                      // 'Storytelling',
-                      // 'Singing',
-                      // 'Rapsong',
-                      // 'Beatboxing',
-                      // 'Mimicry',
-                      // 'Stand-up Comedy',
-                      'Audience'
-                    ]
-                  },
-                  { name: 'age', label: 'Age', type: 'number' },
-                  { name: 'address', label: 'Address', type: 'text' },
-                  { name: 'socialLink', label: 'Social Link (Instagram, YouTube)', type: 'url' },
-                  { name: 'howKnowAboutMic', label: 'How did you hear about Mic of Mithila?', type: 'text' }
-                ]
-                  .filter(field => field.name !== 'contentFile') // exclude contentFile from loop
-                  .map((field) => (
-                    <div key={field.name}>
-                      <label
-                        htmlFor={field.name}
-                        className="block text-sm font-medium mb-1"
-                      >
-                        {field.label}
-                        {field.name !== 'socialLink' && ' *'}
-                      </label>
-
-                      {field.type === 'select' ? (
-                        <select
-                          id={field.name}
-                          name={field.name}
-                          required
-                          onChange={(e) => setSelectedCategory(e.target.value)}
-                          className="w-full border border-gray-300 rounded px-3 py-2 bg-white"
-                        >
-                          <option value="">Select a category</option>
-                          {field.options.map((option) => (
-                            <option key={option} value={option}>
-                              {option}
-                            </option>
-                          ))}
-                        </select>
-                      ) : (
-                        <input
-                          type={field.type}
-                          id={field.name}
-                          name={field.name}
-                          required={field.name !== 'socialLink'}
-                          className="w-full border border-gray-300 rounded px-3 py-2"
-                        />
-                      )}
-                    </div>
-                  ))}
-
-                {/* Optional Question */}
-                <div>
-                  <label htmlFor="anyQues" className="block text-sm font-medium mb-1">
-                    Any Question?
-                  </label>
-                  <textarea
-                    id="anyQues"
-                    name="anyQues"
-                    className="w-full border border-gray-300 rounded px-3 py-2"
-                    rows={4}
-                  />
-                </div>
-
-                {/* Upload File (Required only if not Audience) */}
-                {selectedCategory !== 'Audience' && (
-                  <div>
-                    <label className="block text-sm font-medium mb-1">
-                      Upload Your Content (script) *
-                    </label>
-                    <input
-                      type="file"
-                      accept="image/*,video/*,audio/*,application/pdf"
-                      onChange={handleFileChange}
-                      required
-                      className="w-full border border-gray-300 rounded px-3 py-2"
-                    />
-                    {fileName && (
-                      <p className="text-sm text-gray-500 mt-1">Selected: {fileName}</p>
-                    )}
-                  </div>
-                )}
-
-                <button
-                  type="submit"
-                  className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
-                >
-                  Submit
-                </button>
-              </form>
+        {/* Info Cards Row */}
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4">
+          {[
+            {
+              icon: '⏰',
+              label: 'Event Time',
+              value: eventTime || 'To Be Announced',
+            },
+            {
+              icon: '📍',
+              label: 'Venue',
+              value: eventVenueAddress || 'To Be Announced',
+            },
+            {
+              icon: '💰',
+              label: 'Registration Fee',
+              value: registrationFee === 0 ? 'Free Entry' : `₹${registrationFee}`,
+            },
+            {
+              icon: '📋',
+              label: 'Registration',
+              value: isRegistrationOpen ? 'Open Now' : 'Closed',
+              highlight: isRegistrationOpen ? 'text-green-600' : 'text-red-500',
+            },
+          ].map((item) => (
+            <div
+              key={item.label}
+              className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex flex-col gap-1"
+            >
+              <span className="text-2xl">{item.icon}</span>
+              <p className="text-xs text-gray-400 font-medium uppercase tracking-wide">{item.label}</p>
+              <p className={`text-sm font-semibold text-gray-800 ${item.highlight || ''}`}>{item.value}</p>
             </div>
           ))}
-        </>
-      )}
+        </div>
+
+        {/* Registration Dates */}
+        {(formattedRegOpen || formattedRegClose) && (
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+            <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Registration Window</h3>
+            <div className="flex flex-wrap gap-6 text-sm">
+              {formattedRegOpen && (
+                <div>
+                  <p className="text-gray-400 text-xs">Opens</p>
+                  <p className="font-semibold text-gray-800">{formattedRegOpen}</p>
+                </div>
+              )}
+              {formattedRegClose && (
+                <div>
+                  <p className="text-gray-400 text-xs">Closes</p>
+                  <p className="font-semibold text-gray-800">{formattedRegClose}</p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Chief Guests */}
+        {chiefGuests && chiefGuests.length > 0 && (
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+            <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Chief Guests</h3>
+            <div className="flex flex-wrap gap-2">
+              {chiefGuests.map((guest, i) => (
+                <span
+                  key={i}
+                  className="bg-purple-50 text-purple-700 border border-purple-200 text-sm font-medium px-3 py-1 rounded-full"
+                >
+                  ⭐ {guest}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Description */}
+        {desc && (
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <h2 className="text-lg font-bold text-gray-800 mb-4">About This Event</h2>
+            <div
+              className="prose max-w-none text-gray-700 prose-headings:scroll-mt-20 prose-h1:text-2xl prose-h2:text-xl prose-p:text-base prose-p:leading-relaxed"
+              dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(desc) }}
+            />
+          </div>
+        )}
+
+
+        {/* CTA */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div>
+            <p className="text-lg font-bold text-gray-800">Interested in joining?</p>
+            <p className="text-sm text-gray-400 mt-0.5">
+              {isRegistrationOpen
+                ? 'Registration is open. Secure your spot now!'
+                : 'Registration is currently closed for this event.'}
+            </p>
+          </div>
+
+          <button
+            onClick={handleRegisterClick}
+            disabled={!isRegistrationOpen}
+            className={`px-8 py-3 rounded-xl font-semibold text-white transition-all shadow-md whitespace-nowrap ${isRegistrationOpen
+                ? 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 hover:shadow-lg'
+                : 'bg-gray-300 text-gray-500 cursor-not-allowed shadow-none'
+              }`}
+          >
+            {isRegistrationOpen ? 'Register Now →' : 'Registration Closed'}
+          </button>
+        </div>
+
+      </div>
     </div>
   );
 };
