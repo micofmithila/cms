@@ -26,6 +26,8 @@ const RegisterPage = () => {
   const [selectedCategory, setSelectedCategory] = useState('');
   const [contentFile, setContentFile] = useState(null);
   const [fileName, setFileName] = useState('');
+  const [consent, setConsent] = useState(false);
+  const [progress, setProgress] = useState(0);
 
   useEffect(() => {
     const fetchEvent = async () => {
@@ -68,19 +70,16 @@ const RegisterPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setSubmitting(true);
 
     const category = tab === 'audience' ? 'Audience' : selectedCategory;
 
     if (!category) {
       toast.error('Please select a category.');
-      setSubmitting(false);
       return;
     }
 
     if (tab === 'performer' && !contentFile) {
       toast.error('Please upload your content.');
-      setSubmitting(false);
       return;
     }
 
@@ -99,19 +98,67 @@ const RegisterPage = () => {
       formData.append('contentFile', contentFile);
     }
 
+    setSubmitting(true);
+    setProgress(0);
+
     try {
-      const res = await fetch(`/api/events/${id}/register`, {
-        method: 'POST',
-        body: formData,
+      await new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+
+        xhr.upload.addEventListener('progress', (e) => {
+          if (e.lengthComputable) {
+            const percent = Math.round((e.loaded / e.total) * 100);
+            setProgress(percent);
+          }
+        });
+
+        xhr.addEventListener('load', () => {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            resolve(JSON.parse(xhr.responseText));
+          } else {
+            try {
+              const err = JSON.parse(xhr.responseText);
+              reject(new Error(err.error || 'Registration failed'));
+            } catch {
+              reject(new Error('Registration failed'));
+            }
+          }
+        });
+
+        xhr.addEventListener('error', () => reject(new Error('Network error. Please try again.')));
+        xhr.addEventListener('abort', () => reject(new Error('Upload was aborted.')));
+
+        xhr.open('POST', `/api/events/${id}/register`);
+        xhr.send(formData);
       });
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Registration failed');
+      setProgress(100);
+
+      sessionStorage.setItem('registrationData', JSON.stringify({
+        eventTitle: event.title,
+        eventDate: event.eventDate,
+        eventTime: event.eventTime,
+        eventVenueAddress: event.eventVenueAddress,
+        tab,
+        name: formData.get('name'),
+        email: formData.get('email'),
+        phone: formData.get('phone'),
+        category: formData.get('category'),
+        age: formData.get('age'),
+        address: formData.get('address'),
+        socialLink: formData.get('socialLink'),
+        howKnowAboutMic: formData.get('howKnowAboutMic'),
+        anyQues: formData.get('anyQues'),
+      }));
 
       toast.success('Successfully registered! 🎉');
-      router.push(`/events/${id}`);
+
+      // Small delay to ensure sessionStorage write completes before navigation
+      await new Promise((resolve) => setTimeout(resolve, 100));
+      router.push(`/events/${id}/register/thankyou`);
     } catch (err) {
       toast.error(err.message);
+      setProgress(0);
     } finally {
       setSubmitting(false);
     }
@@ -121,13 +168,13 @@ const RegisterPage = () => {
   if (!event) return null;
 
   const commonFields = [
-    { name: 'name',           label: 'Full Name',                              type: 'text',   required: true  },
-    { name: 'email',          label: 'Email Address',                          type: 'email',  required: true  },
-    { name: 'phone',          label: 'Phone Number',                           type: 'tel',    required: true  },
-    { name: 'age',            label: 'Age',                                    type: 'number', required: true  },
-    { name: 'address',        label: 'Address',                                type: 'text',   required: true  },
-    { name: 'howKnowAboutMic',label: 'How did you hear about MIC of Mithila?', type: 'text',   required: true  },
-    { name: 'socialLink',     label: 'Social Link (Instagram, YouTube)',        type: 'url',    required: false },
+    { name: 'name', label: 'Full Name', type: 'text', required: true },
+    { name: 'email', label: 'Email Address', type: 'email', required: true },
+    { name: 'phone', label: 'Phone Number', type: 'tel', required: true },
+    { name: 'age', label: 'Age', type: 'number', required: true },
+    { name: 'address', label: 'Address', type: 'text', required: true },
+    { name: 'howKnowAboutMic', label: 'How did you hear about MIC of Mithila?', type: 'text', required: true },
+    { name: 'socialLink', label: 'Social Link (Instagram, YouTube)', type: 'url', required: false },
   ];
 
   return (
@@ -159,22 +206,20 @@ const RegisterPage = () => {
           <button
             type="button"
             onClick={() => handleTabSwitch('performer')}
-            className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all ${
-              tab === 'performer'
-                ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow'
-                : 'text-gray-500 hover:text-gray-700'
-            }`}
+            className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all ${tab === 'performer'
+              ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow'
+              : 'text-gray-500 hover:text-gray-700'
+              }`}
           >
             🎤 Register as Performer
           </button>
           <button
             type="button"
             onClick={() => handleTabSwitch('audience')}
-            className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all ${
-              tab === 'audience'
-                ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow'
-                : 'text-gray-500 hover:text-gray-700'
-            }`}
+            className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all ${tab === 'audience'
+              ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow'
+              : 'text-gray-500 hover:text-gray-700'
+              }`}
           >
             👥 Register as Audience
           </button>
@@ -184,11 +229,10 @@ const RegisterPage = () => {
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
 
           {/* Tab description */}
-          <div className={`mb-6 p-4 rounded-xl border ${
-            tab === 'performer'
-              ? 'bg-blue-50 border-blue-100'
-              : 'bg-purple-50 border-purple-100'
-          }`}>
+          <div className={`mb-6 p-4 rounded-xl border ${tab === 'performer'
+            ? 'bg-blue-50 border-blue-100'
+            : 'bg-purple-50 border-purple-100'
+            }`}>
             {tab === 'performer' ? (
               <div>
                 <p className="text-sm font-semibold text-blue-700 mb-0.5">Performer Registration</p>
@@ -329,23 +373,76 @@ const RegisterPage = () => {
               </>
             )}
 
-            {/* Submit */}
+            {/* Consent */}
             <div className="pt-2">
+              <label className="flex items-start gap-3 cursor-pointer group">
+                <div className="relative mt-0.5 flex-shrink-0">
+                  <input
+                    type="checkbox"
+                    checked={consent}
+                    onChange={(e) => setConsent(e.target.checked)}
+                    className="sr-only"
+                  />
+                  <div
+                    className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all ${consent
+                      ? 'bg-gradient-to-br from-blue-600 to-purple-600 border-purple-600'
+                      : 'border-gray-300 bg-white group-hover:border-purple-400'
+                      }`}
+                  >
+                    {consent && (
+                      <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                      </svg>
+                    )}
+                  </div>
+                </div>
+                <p className="text-xs text-gray-500 leading-relaxed">
+                  I consent to MIC of Mithila collecting and storing the information I have provided in this form —
+                  including my name, email, phone number, age, address, and social links — for the purpose of
+                  event registration and communication. I understand this information will only be used by the
+                  MIC of Mithila team and will not be shared with third parties.
+                </p>
+              </label>
+            </div>
+
+            {/* Progress bar */}
+            {submitting && (
+              <div className="pt-2 space-y-1.5">
+                <div className="flex justify-between items-center text-xs text-gray-500">
+                  <span>{progress < 100 ? 'Uploading...' : 'Processing...'}</span>
+                  <span className="font-semibold text-purple-600">{progress}%</span>
+                </div>
+                <div className="w-full bg-gray-100 rounded-full h-2.5 overflow-hidden">
+                  <div
+                    className="h-full rounded-full bg-gradient-to-r from-blue-500 to-purple-600 transition-all duration-300"
+                    style={{ width: `${progress}%` }}
+                  />
+                </div>
+                {progress === 100 && (
+                  <p className="text-xs text-center text-purple-500 animate-pulse">
+                    Finalizing your registration...
+                  </p>
+                )}
+              </div>
+            )}
+
+            {/* Submit */}
+            <div className="pt-1">
               <button
                 type="submit"
-                disabled={submitting}
-                className={`w-full py-3 rounded-xl font-semibold text-white transition shadow-md ${
-                  submitting
-                    ? 'bg-gray-300 cursor-not-allowed text-gray-500'
-                    : 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700'
-                }`}
+                disabled={submitting || !consent}
+                className={`w-full py-3 rounded-xl font-semibold text-white transition shadow-md ${submitting || !consent
+                  ? 'bg-gray-300 cursor-not-allowed text-gray-500'
+                  : 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700'
+                  }`}
               >
-                {submitting
-                  ? 'Submitting...'
-                  : tab === 'performer'
-                  ? 'Submit Performer Registration'
-                  : 'Submit Audience Registration'}
+                {submitting ? `Submitting... ${progress}%` : tab === 'performer' ? 'Submit Performer Registration' : 'Submit Audience Registration'}
               </button>
+              {!consent && !submitting && (
+                <p className="text-xs text-center text-gray-400 mt-2">
+                  Please accept the consent above to submit your registration.
+                </p>
+              )}
             </div>
 
           </form>
