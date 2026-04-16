@@ -8,12 +8,12 @@ import Link from 'next/link';
 
 const PERFORMER_CATEGORIES = [
   'Poetry',
-  'Storytelling',
-  'Singing',
-  'Rapsong',
-  'Beatboxing',
-  'Mimicry',
-  'Stand-up Comedy',
+  // 'Storytelling',
+  // 'Singing',
+  // 'Rapsong',
+  // 'Beatboxing',
+  // 'Mimicry',
+  // 'Stand-up Comedy',
 ];
 
 const RegisterPage = () => {
