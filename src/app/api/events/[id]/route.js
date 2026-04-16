@@ -35,24 +35,47 @@ export async function PUT(req, { params }) {
   await dbConnect();
   const session = await getServerSession(authOptions);
 
-  if (!session || session.user.role !== 'admin') {
+  if (!session) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
+  const { id } = await params;
+
   try {
     const body = await req.json();
-    const { id: updatedEventId } = await params;
-    const updatedEvent = await Events.findByIdAndUpdate(updatedEventId, body, {
-      new: true,
-      runValidators: true
-    });
 
-    if (!updatedEvent) {
+    const event = await Events.findById(id);
+    if (!event) {
       return NextResponse.json({ error: 'Event not found' }, { status: 404 });
     }
 
-    return NextResponse.json(updatedEvent);
+    // Update all flat fields
+    const flatFields = [
+      'title', 'desc', 'theme', 'posterUrl', 'registrationLimit',
+      'registrationFee', 'eventDate', 'eventTime', 'eventVenueAddress',
+      'status', 'chiefGuests', 'imagesArray',
+    ];
+
+    flatFields.forEach((field) => {
+      if (body[field] !== undefined) {
+        event[field] = body[field];
+      }
+    });
+
+    // Handle nested isRegistrationOpen separately
+    if (body.isRegistrationOpen !== undefined) {
+      if (typeof body.isRegistrationOpen === 'object' && body.isRegistrationOpen !== null) {
+        event.isRegistrationOpen = {
+          performer: body.isRegistrationOpen.performer ?? event.isRegistrationOpen?.performer ?? false,
+          audience: body.isRegistrationOpen.audience ?? event.isRegistrationOpen?.audience ?? false,
+        };
+      }
+    }
+
+    await event.save();
+    return NextResponse.json(event, { status: 200 });
   } catch (err) {
+    console.error('Event update error:', err);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }

@@ -35,10 +35,19 @@ const RegisterPage = () => {
         const res = await fetch(`/api/events/${id}`);
         const data = await res.json();
 
-        if (!data.isRegistrationOpen) {
+        // If BOTH registrations are closed, redirect away
+        const performerOpen = data.isRegistrationOpen?.performer;
+        const audienceOpen = data.isRegistrationOpen?.audience;
+
+        if (!performerOpen && !audienceOpen) {
           toast.error('Registration is closed for this event.');
           router.push(`/events/${id}`);
           return;
+        }
+
+        // Auto-switch to audience tab if only audience is open
+        if (!performerOpen && audienceOpen) {
+          setTab('audience');
         }
 
         setEvent(data);
@@ -211,23 +220,36 @@ const RegisterPage = () => {
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-1.5 mb-6 flex gap-1.5">
           <button
             type="button"
-            onClick={() => handleTabSwitch('performer')}
-            className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all ${tab === 'performer'
-              ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow'
-              : 'text-gray-500 hover:text-gray-700'
+            onClick={() => event.isRegistrationOpen?.performer && handleTabSwitch('performer')}
+            disabled={!event.isRegistrationOpen?.performer}
+            className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all ${!event.isRegistrationOpen?.performer
+                ? 'text-gray-300 cursor-not-allowed'
+                : tab === 'performer'
+                  ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow'
+                  : 'text-gray-500 hover:text-gray-700'
               }`}
           >
             🎤 Register as Performer
+            {!event.isRegistrationOpen?.performer && (
+              <span className="block text-xs font-normal opacity-70">Closed</span>
+            )}
           </button>
+
           <button
             type="button"
-            onClick={() => handleTabSwitch('audience')}
-            className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all ${tab === 'audience'
-              ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow'
-              : 'text-gray-500 hover:text-gray-700'
+            onClick={() => event.isRegistrationOpen?.audience && handleTabSwitch('audience')}
+            disabled={!event.isRegistrationOpen?.audience}
+            className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all ${!event.isRegistrationOpen?.audience
+                ? 'text-gray-300 cursor-not-allowed'
+                : tab === 'audience'
+                  ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow'
+                  : 'text-gray-500 hover:text-gray-700'
               }`}
           >
             👥 Register as Audience
+            {!event.isRegistrationOpen?.audience && (
+              <span className="block text-xs font-normal opacity-70">Closed</span>
+            )}
           </button>
         </div>
 

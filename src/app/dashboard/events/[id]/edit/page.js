@@ -52,9 +52,22 @@ const EditEventPage = () => {
 
   const handleEventChange = (e) => {
     const { name, value, type, checked } = e.target;
+
+    if (name === 'isRegistrationOpen.performer' || name === 'isRegistrationOpen.audience') {
+      const key = name.split('.')[1];
+      setEventData((prev) => ({
+        ...prev,
+        isRegistrationOpen: {
+          ...prev.isRegistrationOpen,
+          [key]: checked,
+        },
+      }));
+      return;
+    }
+
     setEventData((prev) => ({
       ...prev,
-      [name]: type === "checkbox" ? checked : value,
+      [name]: type === 'checkbox' ? checked : value,
     }));
   };
 
@@ -118,15 +131,34 @@ const EditEventPage = () => {
         <Input label="Venue Address" name="eventVenueAddress" value={eventData.eventVenueAddress} onChange={handleEventChange} required />
 
         {/* Registration Open Checkbox */}
-        <div className="flex items-center gap-3 mt-2">
+        {/* Performer Registration Toggle */}
+        <div className="flex items-center gap-3 p-3 border rounded-lg bg-gray-50">
           <input
             type="checkbox"
-            name="isRegistrationOpen"
-            checked={eventData.isRegistrationOpen}
+            name="isRegistrationOpen.performer"
+            checked={eventData.isRegistrationOpen?.performer || false}
             onChange={handleEventChange}
-            className="w-5 h-5"
+            className="w-5 h-5 accent-blue-600"
+            id="regPerformer"
           />
-          <label className="text-sm font-medium">Is Registration Open?</label>
+          <label htmlFor="regPerformer" className="text-sm font-medium cursor-pointer">
+            🎤 Open Performer Registration
+          </label>
+        </div>
+
+        {/* Audience Registration Toggle */}
+        <div className="flex items-center gap-3 p-3 border rounded-lg bg-gray-50">
+          <input
+            type="checkbox"
+            name="isRegistrationOpen.audience"
+            checked={eventData.isRegistrationOpen?.audience || false}
+            onChange={handleEventChange}
+            className="w-5 h-5 accent-purple-600"
+            id="regAudience"
+          />
+          <label htmlFor="regAudience" className="text-sm font-medium cursor-pointer">
+            👥 Open Audience Registration
+          </label>
         </div>
 
         <div className="flex flex-col gap-1">
