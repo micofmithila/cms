@@ -13,6 +13,10 @@ const EventsSchema = new mongoose.Schema({
     performer: { type: Boolean, default: false },
     audience: { type: Boolean, default: false },
   },
+  performerCategories: {
+    type: [{ type: String }],
+    default: [],
+  },
   eventDate: { type: Date, default: null },
   eventTime: { type: String, default: '' },
   eventVenueAddress: { type: String, required: true },
@@ -24,5 +28,6 @@ const EventsSchema = new mongoose.Schema({
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   createdAt: { type: Date, default: Date.now }
 });
+
 // delete mongoose.models.Events;
 export default mongoose.models.Events || mongoose.model('Events', EventsSchema);

@@ -6,16 +6,6 @@ import LoadingSpinner from '@/components/Ui/LoadingSpinner';
 import toast from 'react-hot-toast';
 import Link from 'next/link';
 
-const PERFORMER_CATEGORIES = [
-  'Poetry',
-  // 'Storytelling',
-  // 'Singing',
-  // 'Rapsong',
-  // 'Beatboxing',
-  // 'Mimicry',
-  // 'Stand-up Comedy',
-];
-
 const RegisterPage = () => {
   const { id } = useParams();
   const router = useRouter();
@@ -304,19 +294,25 @@ const RegisterPage = () => {
                   <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-1">
                     Performance Category <span className="text-red-500">*</span>
                   </label>
-                  <select
-                    id="category"
-                    name="category"
-                    required
-                    value={selectedCategory}
-                    onChange={(e) => setSelectedCategory(e.target.value)}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent"
-                  >
-                    <option value="">Select your performance category</option>
-                    {PERFORMER_CATEGORIES.map((cat) => (
-                      <option key={cat} value={cat}>{cat}</option>
-                    ))}
-                  </select>
+                  {event.performerCategories?.length > 0 ? (
+                    <select
+                      id="category"
+                      name="category"
+                      required
+                      value={selectedCategory}
+                      onChange={(e) => setSelectedCategory(e.target.value)}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent"
+                    >
+                      <option value="">Select your performance category</option>
+                      {event.performerCategories.map((cat) => (
+                        <option key={cat} value={cat}>{cat}</option>
+                      ))}
+                    </select>
+                  ) : (
+                    <div className="w-full border border-amber-200 bg-amber-50 rounded-lg px-3 py-2.5 text-sm text-amber-700">
+                      No performance categories have been set for this event yet.
+                    </div>
+                  )}
                 </div>
 
                 {/* Content upload */}
