@@ -44,36 +44,35 @@ export async function PUT(req, { params }) {
   try {
     const body = await req.json();
 
-    const event = await Events.findById(id);
-    if (!event) {
+    const updateData = {
+      title: body.title,
+      desc: body.desc,
+      theme: body.theme,
+      posterUrl: body.posterUrl,
+      registrationLimit: body.registrationLimit,
+      registrationFee: body.registrationFee,
+      eventDate: body.eventDate || null,
+      eventTime: body.eventTime || '',
+      eventVenueAddress: body.eventVenueAddress,
+      status: body.status,
+      chiefGuests: Array.isArray(body.chiefGuests) ? body.chiefGuests : [],
+      imagesArray: Array.isArray(body.imagesArray) ? body.imagesArray : [],
+      performerCategories: Array.isArray(body.performerCategories) ? body.performerCategories : [],
+      'isRegistrationOpen.performer': body.isRegistrationOpen?.performer ?? false,
+      'isRegistrationOpen.audience': body.isRegistrationOpen?.audience ?? false,
+    };
+
+    const updated = await Events.findByIdAndUpdate(
+      id,
+      { $set: updateData },
+      { new: true, runValidators: false }
+    );
+
+    if (!updated) {
       return NextResponse.json({ error: 'Event not found' }, { status: 404 });
     }
 
-    // Update all flat fields
-    const flatFields = [
-      'title', 'desc', 'theme', 'posterUrl', 'registrationLimit',
-      'registrationFee', 'eventDate', 'eventTime', 'eventVenueAddress',
-      'status', 'chiefGuests', 'imagesArray',
-    ];
-
-    flatFields.forEach((field) => {
-      if (body[field] !== undefined) {
-        event[field] = body[field];
-      }
-    });
-
-    // Handle nested isRegistrationOpen separately
-    if (body.isRegistrationOpen !== undefined) {
-      if (typeof body.isRegistrationOpen === 'object' && body.isRegistrationOpen !== null) {
-        event.isRegistrationOpen = {
-          performer: body.isRegistrationOpen.performer ?? event.isRegistrationOpen?.performer ?? false,
-          audience: body.isRegistrationOpen.audience ?? event.isRegistrationOpen?.audience ?? false,
-        };
-      }
-    }
-
-    await event.save();
-    return NextResponse.json(event, { status: 200 });
+    return NextResponse.json(updated, { status: 200 });
   } catch (err) {
     console.error('Event update error:', err);
     return NextResponse.json({ error: err.message }, { status: 500 });

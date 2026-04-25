@@ -43,6 +43,31 @@ const CreateEventPage = () => {
     status: 'draft',
   });
 
+  const [performerCategories, setPerformerCategories] = useState([]);
+  const [customCategoryInput, setCustomCategoryInput] = useState('');
+
+  const handleCategoryToggle = (cat) => {
+    setPerformerCategories((prev) =>
+      prev.includes(cat) ? prev.filter((c) => c !== cat) : [...prev, cat]
+    );
+  };
+
+  const handleAddCustomCategory = () => {
+    const trimmed = customCategoryInput.trim();
+    if (!trimmed) return;
+    if (performerCategories.includes(trimmed)) {
+      toast.error('Category already added.');
+      return;
+    }
+    setPerformerCategories((prev) => [...prev, trimmed]);
+    setCustomCategoryInput('');
+  };
+
+  const handleRemoveCategory = (cat) => {
+    setPerformerCategories((prev) => prev.filter((c) => c !== cat));
+  };
+
+
   const [chiefGuests, setChiefGuests] = useState(['']);
   const [imagesArray, setImagesArray] = useState(['']);
 
@@ -87,10 +112,15 @@ const CreateEventPage = () => {
   };
 
   const createEvent = async () => {
+    if (performerCategories.length === 0) {
+      toast.error('Please select at least one performer category.');
+      return;
+    }
     const payload = {
       ...eventData,
       chiefGuests: chiefGuests.filter(Boolean),
       imagesArray: imagesArray.filter(Boolean),
+      performerCategories
     };
 
     try {
@@ -154,6 +184,80 @@ const CreateEventPage = () => {
             👥 Open Audience Registration
           </label>
         </div>
+
+        {/* Performer Categories */}
+          <div>
+            <label className="text-sm font-medium block">
+              Performer Categories
+              <span className="text-gray-400 ml-1 text-xs">(select or add custom)</span>
+            </label>
+
+            {/* Default category options */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              {['Poetry', 'Storytelling', 'Singing', 'Rapsong', 'Beatboxing', 'Mimicry', 'Stand-up Comedy'].map((cat) => (
+                <label
+                  key={cat}
+                  className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg border cursor-pointer transition-all text-sm ${performerCategories.includes(cat)
+                    ? 'bg-blue-50 border-blue-400 text-blue-700 font-medium'
+                    : 'bg-gray-50 border-gray-200 text-gray-600 hover:border-gray-300'
+                    }`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={performerCategories.includes(cat)}
+                    onChange={() => handleCategoryToggle(cat)}
+                    className="accent-blue-600 w-4 h-4 flex-shrink-0"
+                  />
+                  {cat}
+                </label>
+              ))}
+            </div>
+
+            {/* Add custom category */}
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={customCategoryInput}
+                onChange={(e) => setCustomCategoryInput(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddCustomCategory())}
+                placeholder="Add custom category (e.g. Dance, Magic)"
+                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <button
+                type="button"
+                onClick={handleAddCustomCategory}
+                className="px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition"
+              >
+                + Add
+              </button>
+            </div>
+
+            {/* Selected categories as removable tags */}
+            {performerCategories.length > 0 && (
+              <div className="space-y-2">
+                <p className="text-xs text-gray-400">
+                  {performerCategories.length} {performerCategories.length === 1 ? 'category' : 'categories'} selected
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {performerCategories.map((cat) => (
+                    <span
+                      key={cat}
+                      className="inline-flex items-center gap-1.5 bg-blue-50 border border-blue-200 text-blue-700 text-xs font-medium px-3 py-1.5 rounded-full"
+                    >
+                      {cat}
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveCategory(cat)}
+                        className="text-blue-400 hover:text-red-500 transition ml-0.5"
+                      >
+                        ×
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
 
         <div className="flex flex-col gap-1">
           <label className="text-sm font-medium">Status</label>
