@@ -1,76 +1,139 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { FiMenu, FiX } from 'react-icons/fi';
 import Image from 'next/image';
 
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const pathname = usePathname();
 
-  const toggleMenu = () => setMenuOpen(!menuOpen);
-  const closeMenu = () => setMenuOpen(false);
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 10);
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [pathname]);
 
   const links = [
-    { href: '/', label: 'Home' },
-    { href: '/events', label: 'Events' },
+    { href: '/',        label: 'Home' },
+    { href: '/events',  label: 'Events' },
     { href: '/gallery', label: 'Gallery' },
-    { href: '/about', label: 'About Us' },
+    { href: '/about',   label: 'About Us' },
     { href: '/contact', label: 'Contact' },
   ];
 
+  const isActive = (href) =>
+    href === '/' ? pathname === '/' : pathname.startsWith(href);
+
+  const gradientStyle = {
+    background: scrolled
+      ? 'linear-gradient(135deg, rgba(37, 27, 138, 0.97) 0%, rgba(79, 20, 167, 0.97) 50%, rgba(107, 22, 165, 0.97) 100%)'
+      : 'linear-gradient(135deg, #251b8a 0%, #4f14a7 50%, #6b16a5 100%)',
+  };
+
   return (
-    <header className="bg-gradient-to-r from-blue-700 to-purple-700 text-white shadow-md sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto flex justify-between items-center px-4 py-3 md:py-4">
-        {/* Logo and Brand */}
-        <Link href="/" className="flex items-center gap-3">
-          <Image
-            src="/logo.jpg"
-            alt="MIC of Mithila Logo"
-            width={40}
-            height={40}
-            className="rounded-full"
-          />
-          <span className="text-xl font-bold tracking-wide">MIC of Mithila</span>
-        </Link>
+    <header
+      style={gradientStyle}
+      className={`sticky top-0 z-50 transition-all duration-300 ${
+        scrolled ? 'backdrop-blur-md shadow-xl' : 'shadow-md'
+      }`}
+    >
+      <div className="max-w-6xl mx-auto px-4 sm:px-6">
+        <div className="flex items-center justify-between h-16">
 
-        {/* Desktop Links */}
-        <nav className="hidden md:flex space-x-6 text-sm lg:text-base font-medium">
-          {links.map(link => (
-            <Link key={link.href} href={link.href} className="hover:text-yellow-300 transition">
-              {link.label}
-            </Link>
-          ))}
-        </nav>
+          {/* Logo */}
+          <Link href="/" className="flex items-center gap-2.5 flex-shrink-0">
+            <div className="relative w-9 h-9 rounded-full overflow-hidden ring-2 ring-white/30">
+              <Image
+                src="/logo.jpg"
+                alt="MIC of Mithila"
+                fill
+                className="object-cover"
+                priority
+              />
+            </div>
+            <div className="flex flex-col leading-tight">
+              <span className="text-white font-extrabold text-base sm:text-lg tracking-tight">
+                MIC of Mithila
+              </span>
+              <span
+                className="text-[10px] font-semibold tracking-widest uppercase"
+                style={{
+                  background: 'linear-gradient(to right, #93c5fd, #c084fc)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  backgroundClip: 'text',
+                }}
+              >
+                Where Words Meet Wings
+              </span>
+            </div>
+          </Link>
 
-        {/* Hamburger Menu */}
-        <button
-          className="md:hidden text-white focus:outline-none"
-          onClick={toggleMenu}
-          aria-label="Toggle Menu"
-        >
-          {menuOpen ? <FiX size={26} /> : <FiMenu size={26} />}
-        </button>
+          {/* Desktop nav */}
+          <nav className="hidden md:flex items-center gap-1">
+            {links.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={`relative px-3.5 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                  isActive(link.href)
+                    ? 'text-white bg-white/15'
+                    : 'text-white/70 hover:text-white hover:bg-white/10'
+                }`}
+              >
+                {link.label}
+                {isActive(link.href) && (
+                  <span className="absolute bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-white/80" />
+                )}
+              </Link>
+            ))}
+          </nav>
+
+          {/* Mobile hamburger */}
+          <button
+            className="md:hidden flex items-center justify-center w-9 h-9 rounded-lg text-white/70 hover:text-white hover:bg-white/10 transition"
+            onClick={() => setMenuOpen((prev) => !prev)}
+            aria-label="Toggle menu"
+          >
+            {menuOpen ? <FiX size={20} /> : <FiMenu size={20} />}
+          </button>
+
+        </div>
       </div>
 
-      {/* Mobile Menu with Animation */}
+      {/* Mobile menu */}
       <div
-        className={`md:hidden overflow-hidden transition-all duration-500 ease-in-out ${
-          menuOpen ? 'max-h-96 opacity-100 translate-y-0' : 'max-h-0 opacity-0 -translate-y-2'
-        } bg-gradient-to-b from-blue-700 to-purple-700 text-center px-4`}
+        className={`md:hidden transition-all duration-300 ease-in-out overflow-hidden ${
+          menuOpen ? 'max-h-80 opacity-100' : 'max-h-0 opacity-0'
+        }`}
       >
-        <div className="py-4 space-y-4">
-          {links.map(link => (
+        <div className="border-t border-white/15 px-4 py-3 space-y-1">
+          {links.map((link) => (
             <Link
               key={link.href}
               href={link.href}
-              onClick={closeMenu}
-              className="block text-base font-medium text-white hover:text-yellow-300 transition"
+              className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                isActive(link.href)
+                  ? 'bg-white/15 text-white'
+                  : 'text-white/70 hover:text-white hover:bg-white/10'
+              }`}
             >
+              {isActive(link.href) && (
+                <span className="w-1.5 h-1.5 rounded-full bg-white/80 flex-shrink-0" />
+              )}
               {link.label}
             </Link>
           ))}
         </div>
       </div>
+
     </header>
   );
 }
