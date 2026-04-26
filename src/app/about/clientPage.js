@@ -1,4 +1,5 @@
 'use client'
+import PageHero from '@/components/Ui/PageHero';
 import Image from 'next/image';
 
 export default function AboutUsClient() {
@@ -11,18 +12,12 @@ export default function AboutUsClient() {
   return (
     <main className="bg-white text-gray-800">
       {/* Hero */}
-      <section className="relative bg-gradient-to-br from-purple-100 via-white to-blue-100 py-20 text-center px-4 overflow-hidden">
-        <div className="absolute inset-0 bg-[url('/images/mic-bg.jpg')] bg-cover bg-center opacity-10 pointer-events-none"></div>
-
-        <div className="relative z-10 max-w-4xl mx-auto">
-          <h1 className="text-4xl sm:text-5xl font-extrabold text-gray-800 mb-6 drop-shadow">
-            About <span className="text-purple-700">Us</span>
-          </h1>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
-            A revolution in the heart of Mithila to empower voices through the art of storytelling, poetry, music, and expression.
-          </p>
-        </div>
-      </section>
+      <PageHero
+  label="Our Story"
+  title="About"
+  highlight="Us"
+  description="A revolution in the heart of Mithila to empower voices through the art of storytelling, poetry, music, and expression."
+/>
 
 
       {/* Section: How it all began */}

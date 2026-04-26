@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import EventCard from "@/components/Event/EventCard";
 import LoadingSpinner from "@/components/Ui/LoadingSpinner";
+import PageHero from "@/components/Ui/PageHero";
 
 const EventsClient = () => {
   const [events, setEvents] = useState([]);
@@ -23,19 +24,13 @@ const EventsClient = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50">
 
-      {/* Hero */}
-      <div className="relative bg-gray-900 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-900/70 to-purple-900/70" />
-        <div className="relative z-10 max-w-4xl mx-auto px-6 py-10 sm:py-14 text-center">
-          <h1 className="text-3xl sm:text-4xl font-extrabold text-white mb-3 leading-tight">
-            Our Events
-          </h1>
-          <p className="text-gray-300 text-sm max-w-xl mx-auto leading-relaxed">
-            Discover open mic events, creative performances, and cultural gatherings
-            in the heart of Mithila.
-          </p>
-        </div>
-      </div>
+      {/* Header */}
+      <PageHero
+        label="Explore Events"
+        title="Our"
+        highlight="Events"
+        description="Discover open mic events, creative performances, and cultural gatherings in the heart of Mithila."
+      />
 
       {/* Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14">

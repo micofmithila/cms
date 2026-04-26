@@ -4,6 +4,7 @@ import LoadingSpinner from '@/components/Ui/LoadingSpinner';
 import { useEffect, useState, useMemo, useCallback } from 'react';
 import { FiDownload, FiLink, FiSearch, FiX } from 'react-icons/fi';
 import toast from 'react-hot-toast';
+import PageHero from '@/components/Ui/PageHero';
 
 const PAGE_SIZE = 18;
 
@@ -78,31 +79,12 @@ export default function GalleryClient() {
     <div className="min-h-screen bg-gray-50">
 
       {/* Header */}
-      <div className="relative bg-gray-900 overflow-hidden">
-        {/* Subtle background pattern */}
-        <div className="absolute inset-0 opacity-20"
-          style={{
-            backgroundImage: `radial-gradient(circle at 20% 50%, #6366f1 0%, transparent 50%),
-                        radial-gradient(circle at 80% 50%, #8b5cf6 0%, transparent 50%)`,
-          }}
-        />
-
-        <div className="relative z-10 max-w-3xl mx-auto px-4 py-14 sm:py-20 text-center">
-          <span className="inline-block bg-white/10 border border-white/20 text-white/80 text-xs font-semibold uppercase tracking-widest px-4 py-1.5 rounded-full mb-5">
-            Our Gallery
-          </span>
-          <h1 className="text-3xl sm:text-4xl font-extrabold text-white mb-4 leading-tight">
-            Moments from{' '}
-            <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-              the Stage
-            </span>
-          </h1>
-          <p className="text-gray-400 text-sm sm:text-base max-w-md mx-auto leading-relaxed">
-            A visual journey through our open mic events, performances,
-            and cultural gatherings across Mithila.
-          </p>
-        </div>
-      </div>
+      <PageHero
+        label="Our Gallery"
+        title="Moments from"
+        highlight="the Stage"
+        description="A visual journey through our open mic events, performances, and cultural gatherings across Mithila."
+      />
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
 

@@ -1,4 +1,5 @@
 "use client"
+import PageHero from '@/components/Ui/PageHero';
 import React, { useState } from 'react';
 import toast from 'react-hot-toast';
 
@@ -42,17 +43,12 @@ const ContactClient = () => {
   return (
     <main className="bg-white text-gray-800">
       {/* Hero */}
-      <section className="relative bg-gradient-to-br from-purple-100 via-white to-blue-100 py-20 text-center px-4 overflow-hidden">
-        <div className="absolute inset-0 bg-[url('/images/mic-bg.jpg')] bg-cover bg-center opacity-10 pointer-events-none"></div>
-        <div className="relative z-10 max-w-4xl mx-auto">
-          <h1 className="text-4xl sm:text-5xl font-extrabold text-gray-800 mb-6 drop-shadow">
-            Contact <span className="text-purple-700">Us</span>
-          </h1>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
-            Have a question, suggestion, or just want to say hello? We'd love to hear from you. Fill out the form below and our team will get back to you shortly.
-          </p>
-        </div>
-      </section>
+      <PageHero
+        label="Get in Touch"
+        title="Contact"
+        highlight="Us"
+        description="Have a question, suggestion, or just want to say hello? We'd love to hear from you."
+      />
 
       {/* Contact Form Section */}
       <section className="py-8 md:py-4 md:px-20">
