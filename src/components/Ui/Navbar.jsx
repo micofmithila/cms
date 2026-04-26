@@ -60,7 +60,7 @@ export default function Navbar() {
             </div>
             <div className="flex flex-col leading-tight">
               <span className="text-white font-extrabold text-base sm:text-lg tracking-tight">
-                MIC of Mithila
+                Mic of Mithila
               </span>
               <span
                 className="text-[10px] font-semibold tracking-widest uppercase"
