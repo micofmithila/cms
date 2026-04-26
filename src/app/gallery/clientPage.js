@@ -1,140 +1,256 @@
 'use client';
 
 import LoadingSpinner from '@/components/Ui/LoadingSpinner';
-import { useEffect, useState } from 'react';
-import { FiDownload, FiLink } from 'react-icons/fi';
+import { useEffect, useState, useMemo, useCallback } from 'react';
+import { FiDownload, FiLink, FiSearch, FiX } from 'react-icons/fi';
+import toast from 'react-hot-toast';
+import PageHero from '@/components/Ui/PageHero';
+
+const PAGE_SIZE = 18;
 
 export default function GalleryClient() {
   const [search, setSearch] = useState('');
   const [galleryItems, setGalleryItems] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [downloading, setDownloading] = useState(null);
 
   useEffect(() => {
-    const fetchGallery = async () => {
-      try {
-        const res = await fetch('/api/gallery');
-        if (!res.ok) throw new Error('Failed to fetch images');
-        const data = await res.json();
-        setGalleryItems(data);
-      } catch (err) {
-        console.error(err.message);
-        setGalleryItems([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchGallery();
+    fetch('/api/gallery')
+      .then((res) => res.json())
+      .then((data) => setGalleryItems(Array.isArray(data) ? data : []))
+      .catch(() => setGalleryItems([]))
+      .finally(() => setLoading(false));
   }, []);
 
-  // Filter private images first
-  const publicImages = galleryItems.filter(item => item.isPrivate === false);
+  // Reset page when search changes
+  useEffect(() => {
+    setPage(1);
+  }, [search]);
 
-  // Then apply search filtering
-  const filteredImages = publicImages.filter(item => {
-    const searchableText = `${item.tags.join(' ')}`.toLowerCase();
-    return searchableText.includes(search.toLowerCase());
-  });
+  const filteredImages = useMemo(() => {
+    const lower = search.toLowerCase();
+    return galleryItems.filter(
+      (item) =>
+        item.isPrivate === false &&
+        (search === '' || item.tags?.join(' ').toLowerCase().includes(lower))
+    );
+  }, [galleryItems, search]);
 
-  const handleDownload = async (url) => {
+  const totalPages = Math.ceil(filteredImages.length / PAGE_SIZE);
+
+  const paginatedImages = useMemo(() => {
+    const start = (page - 1) * PAGE_SIZE;
+    return filteredImages.slice(start, start + PAGE_SIZE);
+  }, [filteredImages, page]);
+
+  const handleDownload = useCallback(async (url, id) => {
+    setDownloading(id);
     try {
       const response = await fetch(url);
       const blob = await response.blob();
       const blobUrl = window.URL.createObjectURL(blob);
 
       const now = new Date();
-      const pad = (num) => num.toString().padStart(2, '0');
-
-      const year = now.getFullYear();
-      const month = pad(now.getMonth() + 1);
-      const day = pad(now.getDate());
-      const hours = pad(now.getHours());
-      const minutes = pad(now.getMinutes());
-      const seconds = pad(now.getSeconds());
-
-      const formatted = `MOM_${year}${month}${day}_${hours}${minutes}${seconds}.jpg`;
+      const pad = (n) => n.toString().padStart(2, '0');
+      const filename = `MOM_${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}.jpg`;
 
       const link = document.createElement('a');
       link.href = blobUrl;
-      link.download = formatted;
+      link.download = filename;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-
       window.URL.revokeObjectURL(blobUrl);
-    } catch (error) {
-      console.error('Download failed:', error);
-      alert('Download failed.');
+      toast.success('Downloaded!');
+    } catch {
+      toast.error('Download failed.');
+    } finally {
+      setDownloading(null);
     }
-  };
+  }, []);
 
-  const handleCopyLink = (url) => {
+  const handleCopyLink = useCallback((url) => {
     navigator.clipboard.writeText(url);
-    alert('Image link copied to clipboard!');
-  };
+    toast.success('Link copied!');
+  }, []);
 
   return (
-    <section className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 py-10 px-4 sm:px-10">
-      <div className="max-w-6xl mx-auto">
-        <h2 className="text-3xl sm:text-4xl font-bold text-center text-purple-700 mb-8">
-          🎨 Gallery
-        </h2>
+    <div className="min-h-screen bg-gray-50">
+
+      {/* Header */}
+      <PageHero
+        label="Our Gallery"
+        title="Moments from"
+        highlight="the Stage"
+        description="A visual journey through our open mic events, performances, and cultural gatherings across Mithila."
+      />
+
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
 
         {/* Search */}
-        <div className="mb-8 max-w-md mx-auto">
+        <div className="relative max-w-sm mb-8">
+          <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm" />
           <input
             type="text"
-            placeholder="Search by name or tags..."
+            placeholder="Search by tag or name..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full px-4 py-3 rounded-full border border-purple-300 shadow-sm focus:ring-purple-500 focus:border-purple-500"
+            className="w-full pl-9 pr-9 py-2.5 text-sm rounded-xl border border-gray-200 bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent"
           />
+          {search && (
+            <button
+              onClick={() => setSearch('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            >
+              <FiX size={14} />
+            </button>
+          )}
         </div>
 
         {/* Loading */}
-        {loading && <LoadingSpinner />}
-
-        {/* Image Grid */}
-        {!loading && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-            {filteredImages.map((item) => (
-              <div
-                key={item._id}
-                className="relative rounded-xl overflow-hidden group shadow-md"
-              >
-                <img
-                  src={item.imageUrl}
-                  alt="Gallery"
-                  className="w-full h-64 object-cover transition duration-300 group-hover:brightness-90"
-                />
-                <div className="absolute bottom-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition">
-                  <button
-                    onClick={() => handleDownload(item.imageUrl)}
-                    className="bg-white/80 backdrop-blur px-2 py-1 rounded-full text-purple-700 hover:bg-white shadow"
-                    title="Download"
-                  >
-                    <FiDownload />
-                  </button>
-                  <button
-                    onClick={() => handleCopyLink(item.imageUrl)}
-                    className="bg-white/80 backdrop-blur px-2 py-1 rounded-full text-purple-700 hover:bg-white shadow"
-                    title="Copy Link"
-                  >
-                    <FiLink />
-                  </button>
-                </div>
-              </div>
-            ))}
+        {loading && (
+          <div className="flex justify-center py-24">
+            <LoadingSpinner />
           </div>
         )}
 
-        {/* No Results */}
+        {/* Empty */}
         {!loading && filteredImages.length === 0 && (
-          <p className="text-center text-gray-500 mt-10">
-            No images found for this search.
-          </p>
+          <div className="flex flex-col items-center py-24 text-center gap-3">
+            <p className="text-5xl">📷</p>
+            <p className="text-lg font-semibold text-gray-700">No images found</p>
+            <p className="text-gray-400 text-sm">
+              {search ? `No results for "${search}"` : 'No images available yet.'}
+            </p>
+            {search && (
+              <button
+                onClick={() => setSearch('')}
+                className="text-sm text-purple-600 hover:underline mt-1"
+              >
+                Clear search
+              </button>
+            )}
+          </div>
         )}
+
+        {/* Grid */}
+        {!loading && paginatedImages.length > 0 && (
+          <>
+            {/* Count */}
+            <div className="flex items-center justify-between mb-4">
+              <p className="text-xs text-gray-400">
+                Showing {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, filteredImages.length)} of {filteredImages.length} images
+              </p>
+            </div>
+
+            <div className="columns-2 sm:columns-3 md:columns-4 lg:columns-5 gap-3 space-y-3">
+              {paginatedImages.map((item) => (
+                <div
+                  key={item._id}
+                  className="group relative rounded-xl overflow-hidden bg-gray-100 shadow-sm hover:shadow-md transition-shadow duration-200 break-inside-avoid"
+                >
+                  <img
+                    src={item.imageUrl}
+                    alt={item.tags?.[0] || 'Gallery image'}
+                    loading="lazy"
+                    decoding="async"
+                    className="w-full h-auto object-contain group-hover:scale-105 transition-transform duration-300"
+                  />
+
+                  {/* Hover overlay */}
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex flex-col justify-between p-2">
+                    {/* Tags */}
+                    {item.tags?.length > 0 && (
+                      <div className="flex flex-wrap gap-1">
+                        {item.tags.slice(0, 2).map((tag) => (
+                          <span
+                            key={tag}
+                            className="text-[10px] bg-white/20 text-white px-1.5 py-0.5 rounded-full backdrop-blur-sm truncate max-w-[80px]"
+                          >
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Actions */}
+                    <div className="flex justify-end gap-1.5">
+                      <button
+                        onClick={() => handleDownload(item.imageUrl, item._id)}
+                        disabled={downloading === item._id}
+                        className="w-7 h-7 rounded-full bg-white/90 flex items-center justify-center text-gray-700 hover:bg-white transition shadow-sm"
+                        title="Download"
+                      >
+                        {downloading === item._id ? (
+                          <span className="w-3 h-3 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
+                        ) : (
+                          <FiDownload size={12} />
+                        )}
+                      </button>
+                      <button
+                        onClick={() => handleCopyLink(item.imageUrl)}
+                        className="w-7 h-7 rounded-full bg-white/90 flex items-center justify-center text-gray-700 hover:bg-white transition shadow-sm"
+                        title="Copy link"
+                      >
+                        <FiLink size={12} />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-center gap-2 mt-10">
+                <button
+                  onClick={() => { setPage((p) => Math.max(1, p - 1)); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                  disabled={page === 1}
+                  className="px-4 py-2 text-sm font-medium rounded-lg border border-gray-200 bg-white text-gray-600 hover:border-purple-300 hover:text-purple-600 disabled:opacity-40 disabled:cursor-not-allowed transition"
+                >
+                  ← Prev
+                </button>
+
+                <div className="flex gap-1">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1)
+                    .filter((p) => p === 1 || p === totalPages || Math.abs(p - page) <= 1)
+                    .reduce((acc, p, idx, arr) => {
+                      if (idx > 0 && p - arr[idx - 1] > 1) acc.push('...');
+                      acc.push(p);
+                      return acc;
+                    }, [])
+                    .map((p, idx) =>
+                      p === '...' ? (
+                        <span key={`dot-${idx}`} className="px-2 py-2 text-sm text-gray-400">…</span>
+                      ) : (
+                        <button
+                          key={p}
+                          onClick={() => { setPage(p); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                          className={`w-9 h-9 rounded-lg text-sm font-semibold transition ${page === p
+                            ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-sm'
+                            : 'bg-white border border-gray-200 text-gray-600 hover:border-purple-300 hover:text-purple-600'
+                            }`}
+                        >
+                          {p}
+                        </button>
+                      )
+                    )}
+                </div>
+
+                <button
+                  onClick={() => { setPage((p) => Math.min(totalPages, p + 1)); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                  disabled={page === totalPages}
+                  className="px-4 py-2 text-sm font-medium rounded-lg border border-gray-200 bg-white text-gray-600 hover:border-purple-300 hover:text-purple-600 disabled:opacity-40 disabled:cursor-not-allowed transition"
+                >
+                  Next →
+                </button>
+              </div>
+            )}
+          </>
+        )}
+
       </div>
-    </section>
+    </div>
   );
 }

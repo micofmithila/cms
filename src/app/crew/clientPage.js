@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import CrewCard from '@/components/Crew/CrewCard';
 import LoadingSpinner from "@/components/Ui/LoadingSpinner";
+import PageHero from "@/components/Ui/PageHero";
 
 
 const CrewClient = () => {
@@ -22,21 +23,24 @@ const CrewClient = () => {
   }, []);
 
   return (
-    <section className="max-w-6xl mx-auto px-4 py-10">
-      <header className="text-center mb-8">
-        <h2 className="text-3xl font-bold">Core Crew</h2>
-        <p className="text-gray-600 mt-2">
-          The pillars behind MOM’s creativity, execution and success.
-        </p>
-      </header>
-      {loading ? <LoadingSpinner /> : (
-        <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-6">
-          {crewMembers.map((member, index) => (
-            <CrewCard key={index} member={member} />
-          ))}
-        </div>
-      )}
-    </section>
+    <main className="bg-white text-gray-800">
+      <PageHero
+        label="Core Crew"
+        title="Meet the"
+        highlight="Crew"
+        description="The pillars behind MOM who make every event possible."
+      />
+
+      <section className="max-w-6xl mx-auto px-4 py-10">
+        {loading ? <LoadingSpinner /> : (
+          <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-6">
+            {crewMembers.map((member, index) => (
+              <CrewCard key={index} member={member} />
+            ))}
+          </div>
+        )}
+      </section>
+    </main>
   );
 };
 
