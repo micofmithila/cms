@@ -168,7 +168,7 @@ export default function TermsOfUsePage() {
         {
           text: 'If you have any questions or concerns about these Terms of Use, please reach out to us:',
           list: [
-            'Email: micofmithila@gmail.com',
+            'Email: contact.micofmithila@gmail.com',
             'Website: micofmithila.in/contact',
             'Instagram: @micofmithila',
           ],

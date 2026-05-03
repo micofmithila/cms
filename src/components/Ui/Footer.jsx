@@ -67,7 +67,7 @@ export default function Footer() {
                     <h4 className="text-lg font-semibold mb-4">Contact Us</h4>
                     <p className="text-sm text-gray-300 mb-4">
                         <FaEnvelope className="inline mr-2" />
-                        micofmithila@gmail.com
+                        contact.micofmithila@gmail.com
                     </p>
                     <div className="flex space-x-4 text-2xl">
                         <a href="https://youtube.com/@micofmithila" target="_blank" rel="noopener noreferrer" className="hover:text-red-500">
