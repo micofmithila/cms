@@ -126,7 +126,7 @@ export default function PrivacyPolicyPage() {
                 {
                     text: 'If you have any questions, concerns, or requests regarding this Privacy Policy or the data we hold about you, please reach out to us:',
                     list: [
-                        'Email: micofmithila@gmail.com',
+                        'Email: contact.micofmithila@gmail.com',
                         'Website: micofmithila.in/contact',
                         'Instagram: @micofmithila',
                     ],
