@@ -1,3 +1,4 @@
+'use client'
 import AudienceReviews from "@/components/HomePage/AudienceReviews";
 import FeaturedEventSection from "@/components/HomePage/FeaturedEvent";
 import FeaturedImagesSection from "@/components/HomePage/FeaturedImage";
@@ -6,12 +7,17 @@ import HeroSection from "@/components/HomePage/Hero";
 import TopPerformersSection from "@/components/HomePage/TopPerformers";
 import Image from "next/image";
 import Link from "next/link";
+import LoadingSpinner from "@/components/Ui/LoadingSpinner";
+import { useState, useEffect } from "react";
 
 export default function Home() {
+  const [loading, setLoading] = useState(true);
 
-  const heroSectionImage = "https://res.cloudinary.com/shivanshucloud/image/upload/v1750271374/micofmithila/gallery/kcdk6izk5jdyyk2o9p3k.jpg"
+  const [heroSectionImage, setHeroSectionImage] = useState("https://res.cloudinary.com/shivanshucloud/image/upload/v1750271374/micofmithila/gallery/kcdk6izk5jdyyk2o9p3k.jpg")
 
-  const featuredImages = [
+  const [featuredEvent, setFeaturedEvent] = useState(null)
+
+  const [featuredImages, setFeaturedImages] = useState([
     "https://res.cloudinary.com/shivanshucloud/image/upload/v1753380971/micofmithila/gallery/w6bysrrccwdhlvml1jtt.jpg",
     "https://res.cloudinary.com/shivanshucloud/image/upload/v1753380970/micofmithila/gallery/licwpmdeaba1ztj4xsym.jpg",
     "https://res.cloudinary.com/shivanshucloud/image/upload/v1753380972/micofmithila/gallery/n6xp5oztjzktcwluzjio.jpg",
@@ -20,9 +26,9 @@ export default function Home() {
     "https://res.cloudinary.com/shivanshucloud/image/upload/v1753381445/micofmithila/gallery/msdtp57hy8pmlvmc4p7b.jpg",
     "https://res.cloudinary.com/shivanshucloud/image/upload/v1753381869/micofmithila/gallery/tqcbvdxs8bh4bpmavmqk.jpg",
     "https://res.cloudinary.com/shivanshucloud/image/upload/v1753382076/micofmithila/gallery/q875mpjmxgdogyvvrsyx.jpg"
-  ]
+  ])
 
-  const featuredPerformers = [
+  const [featuredPerformers, setFeaturedPerformers] = useState([
     {
       name: "Nikhil Kumar Jha",
       category: "Maithili Poetry",
@@ -59,11 +65,11 @@ export default function Home() {
         twitter: "",
       },
     },
-  ]
+  ])
 
-  const featuredVideo = "https://www.youtube.com/embed/y8PPIYXOphY?si=g3B94apnV1-r6sWW";
+  const [featuredVideo, setFeaturedVideo] = useState("https://www.youtube.com/embed/y8PPIYXOphY?si=g3B94apnV1-r6sWW")
 
-  const featuredReviews = [
+  const [featuredReviews, setFeaturedReviews] = useState([
     {
       name: "Mohan Kumar Jha",
       role: "Mithilanchal Chamber of Commerce and Industry Foundation",
@@ -75,18 +81,64 @@ export default function Home() {
       review: "I see Mic of Mithila from the start. Every time new people come and do amazing poetry, rap, and story. Sometimes funny, sometimes emotional. I feel very happy to watch this. This is a good platform for local talent. I wish it would grow more and more.",
     },
     {
-      name: "Shreyash Raj Vatsa,",
+      name: "Shreyash Raj Vatsa",
       role: "Student",
       review: "Pehli baar kisi aise show mein gaya jahan sab kuch apna laga. Har performance aise lag raha tha jaise kisi ne apna dil rakh diya ho mic par. Mujhe laga tha bore hoga, par ab lagta hai har baar MOM ka episode miss nahi karna chahiye. Apne sheher ka show, apni bhasha, apne log, sab kuch mast tha!",
     },
-  ]
+  ])
+
+  useEffect(() => {
+    fetch("/api/homepage")
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error("Failed to fetch homepage data");
+        }
+
+        return res.json();
+      })
+      .then((data) => {
+        setHeroSectionImage(data.heroImages?.[0] || "");
+
+        setFeaturedEvent(data.featuredEventId || null);
+
+        setFeaturedImages(
+          (data.featuredImages || []).map((image) => image.imageUrl)
+        );
+
+        setFeaturedPerformers(data.topPerformers || []);
+
+        setFeaturedVideo(
+          data.featuredVideos?.[0]?.youtubeUrl || ""
+        );
+
+        setFeaturedReviews(data.reviews || []);
+
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error("Failed to fetch homepage contents", err);
+        setLoading(false);
+      });
+  }, []);
+
+  if (loading) {
+    return <LoadingSpinner />;
+  }
+
   return (
     <div>
       <HeroSection bgImage={heroSectionImage} />
-      <FeaturedEventSection />
+
+      {featuredEvent && (
+        <FeaturedEventSection featuredEvent={featuredEvent} />
+      )}
+
       <FeaturedImagesSection images={featuredImages} />
+
       <TopPerformersSection performers={featuredPerformers} />
+
       <FeaturedVideo videoLink={featuredVideo} />
+
       <AudienceReviews reviews={featuredReviews} />
     </div>
   );
