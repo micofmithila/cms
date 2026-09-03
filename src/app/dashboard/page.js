@@ -8,6 +8,11 @@ import { FaUsersCog } from "react-icons/fa";
 export default function Dashboard() {
   const sections = [
     {
+      name: 'Manage HomePage',
+      href: '/dashboard/homepage',
+      icon: <FiGrid className="text-purple-600 text-2xl" />,
+    },
+    {
       name: 'Manage Events',
       href: '/dashboard/events',
       icon: <FiGrid className="text-purple-600 text-2xl" />,
