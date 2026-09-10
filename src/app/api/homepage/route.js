@@ -4,6 +4,10 @@ import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import dbConnect from '@/lib/dbConnect';
 import HomepageSettings from '@/lib/models/HomepageSettings';
 
+// 👇 Explicitly import all referenced models so Mongoose registers them
+import '@/lib/models/Events';
+import '@/lib/models/Gallery';
+
 export async function GET() {
   await dbConnect();
   try {
@@ -11,13 +15,13 @@ export async function GET() {
       .populate('featuredEventId')
       .populate('featuredImages');
 
-    // Create default if doesn't exist
     if (!settings) {
       settings = await HomepageSettings.create({});
     }
 
     return NextResponse.json(settings);
   } catch (err) {
+    console.error('Homepage GET error:', err);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
@@ -47,6 +51,7 @@ export async function PUT(req) {
 
     return NextResponse.json(settings);
   } catch (err) {
+    console.error('Homepage PUT error:', err);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
