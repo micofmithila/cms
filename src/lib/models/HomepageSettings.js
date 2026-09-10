@@ -22,7 +22,7 @@ const HomepageSettingsSchema = new mongoose.Schema({
     image: { type: String, required: true },
     socials: {
       instagram: { type: String, default: '' },
-      youtube: { type: String, default: '' },
+      youtube: { type: String, default: '' }
     },
   }],
   heroImages: [{ type: String }],
@@ -31,8 +31,8 @@ const HomepageSettingsSchema = new mongoose.Schema({
     role: { type: String, default: '' },
     review: { type: String, required: true },
   }],
-  updatedAt: { type: Date, default: Date.now },
 }, { timestamps: true });
 
-delete mongoose.models.HomepageSettings;
-export default mongoose.model('HomepageSettings', HomepageSettingsSchema);
+// Use safe pattern — never delete in production
+export default mongoose.models.HomepageSettings ||
+mongoose.model('HomepageSettings', HomepageSettingsSchema);
